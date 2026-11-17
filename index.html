@@ -34,7 +34,7 @@
   <link rel="preload" as="image" href="assets/media/hero-casamento.webp" type="image/webp" fetchpriority="high">
   <link rel="stylesheet" href="css/styles.css?v=20261103-mobile">
   <link rel="stylesheet" href="css/extra.css?v=20261103-mobile">
-  <link rel="stylesheet" href="css/polish.css?v=20261104-carrossel">
+  <link rel="stylesheet" href="css/polish.css?v=20261117-drag-close">
   <link rel="stylesheet" href="css/logo.css?v=20261104-svg-sf">
 
   <script type="application/ld+json">
@@ -295,12 +295,12 @@
   </main>
 
   <dialog class="video-modal" id="video-modal" aria-label="Reprodução de vídeo">
-    <button class="video-close" type="button" aria-label="Fechar vídeo">×</button>
     <div class="video-stage" id="video-stage">
       <div class="video-loading" id="video-loading" aria-live="polite">Carregando vídeo…</div>
       <video id="portfolio-video" controls playsinline preload="metadata"></video>
       <iframe id="portfolio-video-embed" title="Vídeo do portfólio Stoski Films" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="eager"></iframe>
     </div>
+    <button class="video-close" type="button" aria-label="Fechar vídeo">×</button>
   </dialog>
 
   <dialog class="story-modal" id="story-modal" aria-labelledby="story-title">
@@ -330,6 +330,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/cms.js?v=20261103-mobile" defer></script>
-  <script src="js/main.js?v=20261104-carrossel" defer></script>
+  <script src="js/main.js?v=20261117-drag-close" defer></script>
 </body>
 </html>
