@@ -146,6 +146,64 @@ if (showreelViewport) {
     goToShowreel(showreelIndex + (event.key === 'ArrowRight' ? 1 : -1));
   });
 
+  // Desktop: arrastar o carrossel com mouse ou caneta, como o swipe no celular.
+  // O toque continua usando a rolagem nativa (scroll-snap).
+  let activeDragPointer = null;
+  let dragStartX = 0;
+  let dragStartScroll = 0;
+  let didDrag = false;
+  let suppressDragClick = false;
+
+  showreelViewport.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch' || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    activeDragPointer = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartScroll = showreelViewport.scrollLeft;
+    didDrag = false;
+    suppressDragClick = false;
+  });
+
+  showreelViewport.addEventListener('pointermove', event => {
+    if (event.pointerId !== activeDragPointer) return;
+    const distance = event.clientX - dragStartX;
+    if (!didDrag && Math.abs(distance) < 8) return;
+    if (!didDrag) {
+      didDrag = true;
+      showreelViewport.classList.add('is-dragging');
+      showreelViewport.style.scrollSnapType = 'none';
+      showreelViewport.setPointerCapture(event.pointerId);
+    }
+    showreelViewport.scrollLeft = dragStartScroll - distance;
+    event.preventDefault();
+  });
+
+  const finishShowreelDrag = event => {
+    if (event.pointerId !== activeDragPointer) return;
+    activeDragPointer = null;
+    if (!didDrag) return;
+    didDrag = false;
+    suppressDragClick = true;
+    showreelViewport.classList.remove('is-dragging');
+    showreelViewport.style.scrollSnapType = '';
+    if (showreelViewport.hasPointerCapture(event.pointerId)) {
+      showreelViewport.releasePointerCapture(event.pointerId);
+    }
+    const width = showreelViewport.clientWidth || 1;
+    goToShowreel(Math.round(showreelViewport.scrollLeft / width));
+  };
+
+  showreelViewport.addEventListener('pointerup', finishShowreelDrag);
+  showreelViewport.addEventListener('pointercancel', finishShowreelDrag);
+  showreelViewport.addEventListener('lostpointercapture', finishShowreelDrag);
+  showreelViewport.addEventListener('dragstart', event => event.preventDefault());
+  // Um gesto de arrastar não deve abrir o vídeo acidentalmente.
+  showreelViewport.addEventListener('click', event => {
+    if (!suppressDragClick) return;
+    suppressDragClick = false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
   window.addEventListener('resize', () => goToShowreel(showreelIndex, false), { passive: true });
 }
 
