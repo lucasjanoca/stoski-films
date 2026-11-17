@@ -1053,3 +1053,33 @@ img,video,iframe{max-width:100%}
   .showreel-viewport{scroll-behavior:auto}
   .showreel-dot::before{transition:none}
 }
+
+/* Nov/2026: arrastar com mouse no desktop sem alterar o swipe nativo do celular. */
+@media (hover: hover) and (pointer: fine) {
+  .showreel-viewport { cursor: grab; }
+  .showreel-viewport.is-dragging,
+  .showreel-viewport.is-dragging * { cursor: grabbing !important; }
+}
+.showreel-viewport.is-dragging { user-select: none; -webkit-user-select: none; }
+.showreel-viewport .showreel-slide img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+
+/* O X fica em uma faixa abaixo do vídeo, nunca sobre a engrenagem do player. */
+.video-modal[open] {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+}
+.video-modal .video-stage {
+  flex: 0 1 auto;
+  max-height: calc(100dvh - 82px) !important;
+}
+.video-modal .video-close {
+  position: relative;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  flex: 0 0 auto;
+  align-self: flex-end;
+  margin: 10px 12px 10px 0;
+}
