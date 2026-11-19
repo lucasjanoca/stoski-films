@@ -335,7 +335,7 @@
   function applyConfig(config) {
     if (!config || typeof config !== 'object') return;
     applyTheme(config.theme, config.meta);
-    applyMeta(config.meta);
+    if (document.body.dataset.page === "home") applyMeta(config.meta);
     applyBrand(config.brand);
     applyHero(config.hero);
     applyManifesto(config.manifesto);
