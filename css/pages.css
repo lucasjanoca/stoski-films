@@ -1,0 +1,43 @@
+/* Stoski Films — quatro páginas, navegação e tipografia editorial */
+.main-nav a[aria-current="page"]{color:#f4ead8;position:relative}
+.main-nav a[aria-current="page"]:not(.nav-cta)::after{content:"";position:absolute;bottom:-10px;left:0;right:0;height:1px;background:#d4b47b}
+.main-nav a.nav-cta[aria-current="page"]{border-color:#d4b47b;background:rgba(212,180,123,.14)}
+body[data-page] .site-header{z-index:100}
+body[data-page]:not([data-page="home"]) main{min-height:70vh}
+.inner-hero{position:relative;min-height:clamp(350px,52vh,590px);padding-top:clamp(145px,17vh,210px)!important;padding-bottom:clamp(78px,9vw,125px)!important;display:flex;align-items:center;overflow:hidden;background:linear-gradient(95deg,rgba(6,6,7,.96),rgba(9,9,10,.89) 55%,rgba(10,10,11,.66)),url('../assets/media/hero-casamento.webp') center/cover no-repeat;isolation:isolate;content-visibility:visible!important}
+.inner-hero:after{content:"";position:absolute;inset:auto 0 0;height:115px;background:linear-gradient(transparent,var(--bg,#090909));pointer-events:none}
+.inner-hero__content{max-width:1010px;position:relative;z-index:2}
+.inner-hero .section-kicker{letter-spacing:.2em;color:#e6c890}
+.inner-hero h1{margin:18px 0 16px;font-size:clamp(43px,7vw,98px);font-weight:600;letter-spacing:-.052em;line-height:1.06;max-width:970px;text-wrap:balance;color:#f4f0e8}
+.inner-hero h1 em{font-family:'Playfair Display',serif;font-weight:600;color:#dfbf87;font-style:italic}
+.inner-hero__content>p:not(.section-kicker){max-width:660px;color:#ded8cf;font-size:clamp(15px,1.5vw,19px);line-height:1.65;margin-bottom:26px}
+.inner-hero__index{position:absolute;right:5%;bottom:29px;color:rgba(244,237,222,.52);letter-spacing:.17em;font-size:10px;z-index:2}
+.page-next{display:flex;align-items:center;justify-content:space-between;gap:32px;background:linear-gradient(120deg,#141311,#201a15);border-top:1px solid rgba(218,188,140,.18);content-visibility:visible!important}
+.page-next__copy{max-width:700px}
+.page-next h2{color:#f4f0e8;font-size:clamp(29px,4vw,55px);line-height:1.12;letter-spacing:-.035em;margin:12px 0}
+.page-next__copy>p:not(.section-kicker){color:#c9c3ba;max-width:640px;line-height:1.6}
+.page-next>.btn{flex-shrink:0}
+.work-filters{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+.work-filter{appearance:none;border:1px solid rgba(221,201,165,.28);border-radius:999px;background:rgba(23,23,23,.6);color:#d3cbc0;padding:11px 18px;min-height:44px;cursor:pointer;font:inherit;font-size:13px;transition:background .2s,border-color .2s,color .2s}
+.work-filter:is(:hover,:focus-visible),.work-filter[aria-pressed="true"]{background:#e2ccab;color:#18140f;border-color:#e2ccab}
+.work-filter:focus-visible{outline:2px solid #f6dbad;outline-offset:3px}
+.work-card[hidden]{display:none!important}
+.work-grid[aria-busy="true"]{opacity:.75}
+body[data-page="portfolio"] .work-grid{min-height:180px}
+body[data-page="contact"] .budget{padding-top:clamp(60px,8vw,110px)}
+body[data-page] .showreel[hidden]{display:none!important}
+@media(max-width:900px){
+.main-nav a[aria-current="page"]:not(.nav-cta)::after{left:0;right:auto;bottom:5px;width:25px}
+.inner-hero{min-height:430px;padding-top:145px!important}
+.page-next{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:600px){
+.inner-hero{min-height:395px;padding-top:122px!important;padding-bottom:80px!important}
+.inner-hero h1{font-size:clamp(37px,11vw,57px)}
+.inner-hero__content>p:not(.section-kicker){font-size:15px}
+.inner-hero__index{left:var(--pad,20px);right:auto;bottom:24px;font-size:8px}
+.page-next>.btn{width:100%;text-align:center}
+.work-filters{gap:8px;margin-bottom:18px}
+.work-filter{padding:10px 13px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.work-filter{transition:none}}

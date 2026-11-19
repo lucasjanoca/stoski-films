@@ -20,10 +20,10 @@ jobs:
         shell: bash
         run: |
           required=(
-            README.md SECURITY.md index.html admin.html .gitignore .nojekyll _headers
+            README.md SECURITY.md index.html portfolio.html servicos.html contato.html admin.html .gitignore .nojekyll _headers
             assets/stoski-logo.svg assets/logo-mark.svg assets/favicon.svg
             assets/media/hero-casamento.webp assets/media/evento.webp assets/media/henrique.webp
-            css/styles.css css/extra.css css/polish.css css/admin.css
+            css/styles.css css/extra.css css/polish.css css/pages.css css/admin.css
             js/main.js js/cms.js js/admin.js
             robots.txt sitemap.xml site.webmanifest
           )
@@ -82,7 +82,7 @@ jobs:
                   inline_handlers=[k for k in a if k.lower().startswith("on")]
                   assert not inline_handlers, f"{tag}: inline event handlers are not allowed: {inline_handlers}"
 
-          for filename in ("index.html", "admin.html"):
+          for filename in ("index.html", "portfolio.html", "servicos.html", "contato.html", "admin.html"):
               html = Path(filename).read_text(encoding="utf-8")
               p=P(); p.feed(html)
 
@@ -106,12 +106,20 @@ jobs:
               assert 'http-equiv="Content-Security-Policy"' in html, f"{filename}: CSP meta missing."
               assert 'name="referrer"' in html, f"{filename}: referrer policy meta missing."
 
-              if filename == "index.html":
-                  assert re.search(r'<main\b', html, re.I), "index.html: missing main landmark."
-                  assert 'id="video-modal"' in html, "index.html: video modal missing."
-                  assert 'id="showreel"' in html and 'hidden' in html.split('id="showreel"',1)[0].split('<section',1)[-1], "index.html: showreel must start hidden until CMS config loads."
-                  assert 'Painel ADM</a>' not in html, "index.html: public footer must not expose the admin link."
-                  assert not re.search(r'fotografia|fotógrafo|fotografo|ensaio fotográfico', html, re.I), "Video-only positioning violated."
+              if filename != "admin.html":
+                  assert re.search(r'<main\b', html, re.I), f"{filename}: missing main landmark."
+                  assert 'Painel ADM</a>' not in html, f"{filename}: admin not exposed."
+                  assert not re.search(r'fotografia|fotógrafo|fotografo|ensaio fotográfico', html, re.I), f"{filename}: video-only positioning violated."
+                  assert 'class="main-nav"' in html and 'href="portfolio.html"' in html, f"{filename}: missing 4-page navigation."
+                  assert 'rel="canonical"' in html, f"{filename}: SEO canonical missing."
+                  if filename == "portfolio.html":
+                      assert 'id="video-modal"' in html, "portfolio.html: video modal missing."
+                      assert 'id="showreel"' in html and 'hidden' in html.split('id="showreel"',1)[0].split('<section',1)[-1], "portfolio.html: showreel must start hidden until CMS config loads."
+                      assert 'data-work-filter="todos"' in html, "portfolio.html: project filters missing."
+                  if filename == "contato.html":
+                      assert 'id="budget-form"' in html, "contato.html: contact form missing."
+                  if filename == "servicos.html":
+                      assert 'id="faq"' in html and 'id="processo"' in html, "servicos.html: FAQs and process missing."
               else:
                   for removed in ('data-panel="identity"', 'data-panel="hero"', 'data-panel="appearance"', 'data-panel="history"', 'id="export-btn"', 'id="import-input"', 'id="reset-content-btn"'):
                       assert removed not in html, f"Admin simplified UI: unexpected control {removed}."
@@ -181,8 +189,11 @@ jobs:
       - name: Verify final cache version
         shell: bash
         run: |
-          grep -q 'js/cms.js?v=20261103-mobile' index.html
-          grep -q 'js/main.js?v=20261117-drag-close' index.html
+          for page in index.html portfolio.html servicos.html contato.html; do
+            grep -q 'js/cms.js?v=20261119' "$page"
+            grep -q 'js/main.js?v=20261119' "$page"
+            grep -q 'css/pages.css?v=20261119' "$page"
+          done
           grep -q 'css/polish.css?v=20261117-drag-close' index.html
           grep -q 'js/admin.js?v=20261107-painel-premium' admin.html
           grep -q 'css/admin.css?v=20261107-painel-premium' admin.html

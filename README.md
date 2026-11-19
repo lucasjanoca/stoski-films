@@ -6,7 +6,9 @@ Site oficial de Henrique Stoski (Stoski Films), desenvolvido pela InfoTech.io.
 
 - Posicionamento 100% focado em vídeo.
 - Identidade cinematográfica em preto, marfim e champagne/dourado.
-- Home responsiva com manifesto, serviços, portfólio, showreel, apresentação profissional, processo, FAQ, Instagram e orçamento.
+- Quatro páginas reais: Início (`index.html`), Portfólio (`portfolio.html`), Serviços (`servicos.html`) e Contato (`contato.html`), com menus conectados e SEO individual.
+- Apresentação do Henrique na Início, filtros por categoria no Portfólio, processo e dúvidas em Serviços, e formulário no Contato.
+- O CMS Supabase continua como fonte única: editar trabalhos, showreel, serviços, apresentação e contato no painel atualiza as páginas relevantes.
 - Portfólio administrável com capa, categoria, título, descrição e vídeo por projeto.
 - Showreel principal administrável e oculto automaticamente enquanto nenhum vídeo estiver configurado.
 - Fluxo recomendado de vídeo: YouTube como **Não listado**, incorporado no player do próprio site.

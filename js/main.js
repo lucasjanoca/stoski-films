@@ -31,18 +31,9 @@ let PROJECTS = {
   }
 };
 
-const qs = (selector, scope = document) => scope.querySelector(selector);
+const qs = (selector, scope = document) => scope?.querySelector(selector) || null;
 const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
-/* Temporary, clearly attributed YouTube example. Keep it separate from the client's CMS. */
-const SHOWREEL_DEMO = Object.freeze({
-  title: 'Spring — vídeo demonstrativo de Blender Studio',
-  category: 'Demonstração',
-  subtitle: '© Blender Foundation · Não é uma produção da Stoski Films',
-  image: 'https://i.ytimg.com/vi/WhWc3b3KhnY/maxresdefault.jpg',
-  video: 'https://www.youtube.com/watch?v=WhWc3b3KhnY',
-  story: 'Vídeo usado apenas para demonstrar a navegação do carrossel.'
-});
 
 function applyRuntimeConfig(cfg) {
   if (!cfg || typeof cfg !== 'object') return;
@@ -381,7 +372,7 @@ function stopPortfolioVideo() {
 }
 
 async function openVideo(id, trigger) {
-  const project = PROJECTS[id] || (id === 'showreel-demo' ? SHOWREEL_DEMO : null);
+  const project = PROJECTS[id];
   if (!project || !videoModal) return;
   const raw = safeMediaUrl(project.video);
   if (!raw) return;
@@ -577,3 +568,47 @@ form?.addEventListener('submit', event => {
 });
 
 qsa('a[href*="instagram.com/stoski_films"]').forEach(link => { link.href=INSTAGRAM_URL; });
+/* Rotas reais: links antigos do CMS continuam funcionando entre páginas. */
+const routeForAnchor = Object.freeze({
+  '#topo':'index.html#topo',
+  '#showreel':'portfolio.html#trabalhos',
+  '#trabalhos':'portfolio.html#trabalhos',
+  '#servicos':'servicos.html#servicos',
+  '#sobre':'index.html#sobre',
+  '#processo':'servicos.html#processo',
+  '#faq':'servicos.html#faq',
+  '#orcamento':'contato.html#orcamento'
+});
+function repairAnchors() {
+  qsa('a[href^="#"]').forEach(link => {
+    const hash = link.getAttribute('href');
+    if (!hash || hash === '#' || document.getElementById(hash.slice(1))) return;
+    if (routeForAnchor[hash]) link.href = routeForAnchor[hash];
+  });
+}
+repairAnchors();
+document.addEventListener('stoski:config', repairAnchors);
+
+/* Filtros responsivos alimentados pelo mesmo conteúdo gerenciável no ADM. */
+const filterButtons = qsa('[data-work-filter]');
+function normalizedCategory(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+function applyProjectFilter(filter = 'todos') {
+  filterButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.workFilter === filter));
+  });
+  qsa('.work-card').forEach(card => {
+    const label = normalizedCategory(card.querySelector('.work-meta')?.textContent);
+    const match = filter === 'todos'
+      || (filter === 'casamentos' && /casament|love stor|wedding/.test(label))
+      || (filter === 'eventos' && /evento|celebra|festa/.test(label))
+      || (filter === 'comerciais' && /comercial|marca|reel|empresa|publicitar|institucional/.test(label));
+    card.hidden = !match;
+  });
+}
+filterButtons.forEach(button => button.addEventListener('click', () => applyProjectFilter(button.dataset.workFilter)));
+document.addEventListener('stoski:config', () => {
+  const selected = qs('[data-work-filter][aria-pressed="true"]')?.dataset.workFilter || 'todos';
+  applyProjectFilter(selected);
+});
