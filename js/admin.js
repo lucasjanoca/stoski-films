@@ -548,7 +548,7 @@
         return '<article class="repeat-card portfolio-editor" data-project-index="' + index + '">' +
           '<details class="project-editor-details"' + (index === 0 ? ' open' : '') + '>' +
           '<summary class="project-editor-summary"><span class="project-editor-thumbnail">' +
-          (item.image && /^(https?:\\/\\/|assets\\/)/i.test(item.image) ? '<img src="' + esc(item.image) + '" alt="">' : '▶') +
+          (item.image && /^(https?:\/\/|assets\/)/i.test(item.image) ? '<img src="' + esc(item.image) + '" alt="">' : '▶') +
           '</span><span class="project-editor-copy"><strong>' + esc(item.title || 'Novo trabalho') + '</strong><small>' + esc(item.category || 'Sem categoria') + ' · ' + (item.video ? 'Vídeo adicionado' : 'Sem vídeo') + '</small></span><span class="project-editor-arrow" aria-hidden="true">⌄</span></summary>' +
           '<div class="project-editor-body">' + controls +
           '<span class="card-index">' + String(index + 1).padStart(2, '0') + '</span>' +
