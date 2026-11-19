@@ -32,6 +32,10 @@
   let revision = 0;
   let dirty = false;
   let saveTimer = null;
+  let draftTimer = null;
+  let activeUploads = 0;
+  let saving = false;
+  const DRAFT_PREFIX = "stoski_editor_draft_v1_";
 
   function deepClone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -95,15 +99,83 @@
       saveIndicator.textContent = dirty ? 'Alterações não salvas' : 'Tudo salvo';
       saveIndicator.classList.toggle('dirty', dirty);
     }
-    if (saveBtn) saveBtn.disabled = !dirty || !currentAdmin;
-    if (mobileSaveBtn) mobileSaveBtn.disabled = !dirty || !currentAdmin;
+    if (saveBtn) saveBtn.disabled = !dirty || !currentAdmin || saving || activeUploads > 0;
+    if (mobileSaveBtn) mobileSaveBtn.disabled = !dirty || !currentAdmin || saving || activeUploads > 0;
+    const discard = q('#discard-btn');
+    if (discard) discard.disabled = !dirty || saving || activeUploads > 0;
     if (mobileSaveBar) mobileSaveBar.hidden = !dirty;
     document.body.classList.toggle('has-pending-changes', dirty);
   }
 
   function markDirty() {
     setDirty(true);
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(storeLocalDraft, 600);
   }
+
+  /* Rascunho local por usuário: nunca publica automaticamente nem acessa senhas. */
+  function draftKey() {
+    return currentUser?.id ? DRAFT_PREFIX + currentUser.id : null;
+  }
+
+  function storeLocalDraft() {
+    const key = draftKey();
+    if (!key || !dirty || !config) return;
+    try {
+      localStorage.setItem(key, JSON.stringify({
+        revision,
+        savedAt: Date.now(),
+        data: config
+      }));
+    } catch (_) { /* armazenamento privado ou indisponível */ }
+  }
+
+  function clearLocalDraft() {
+    clearTimeout(draftTimer);
+    const key = draftKey();
+    try { if (key) localStorage.removeItem(key); } catch (_) {}
+    q('#draft-restore')?.classList.add('hidden');
+  }
+
+  function getLocalDraft() {
+    const key = draftKey();
+    if (!key) return null;
+    try {
+      const entry = JSON.parse(localStorage.getItem(key) || 'null');
+      if (!entry?.data || entry.revision !== revision || Date.now() - entry.savedAt > 604800000) {
+        if (entry) localStorage.removeItem(key);
+        return null;
+      }
+      return entry;
+    } catch (_) { return null; }
+  }
+
+  function displayDraftRecovery() {
+    q('#draft-restore')?.classList.toggle('hidden', !getLocalDraft());
+  }
+
+  function restoreLocalDraft() {
+    const entry = getLocalDraft();
+    if (!entry || !savedConfig) {
+      q('#draft-restore')?.classList.add('hidden');
+      return;
+    }
+    config = deepClone(entry.data);
+    renderAll();
+    markDirty();
+    q('#draft-restore')?.classList.add('hidden');
+    showStatus('Rascunho recuperado neste aparelho. Clique em Salvar e publicar quando estiver pronto.', 'success', 7000);
+  }
+
+  function discardChanges() {
+    if (!dirty || !savedConfig || !window.confirm('Descartar todas as alterações que ainda não foram publicadas?')) return;
+    config = deepClone(savedConfig);
+    renderAll();
+    setDirty(false);
+    clearLocalDraft();
+    showStatus('Alterações descartadas. O conteúdo publicado foi mantido.', 'success');
+  }
+
 
   function showOnly(view) {
     authScreen.classList.toggle('hidden', view !== 'auth');
@@ -170,6 +242,11 @@
     q('#mobile-menu')?.addEventListener('click', openSidebar);
     q('#sidebar-close')?.addEventListener('click', closeSidebar);
     q('#sidebar-backdrop')?.addEventListener('click', closeSidebar);
+    q('#discard-btn')?.addEventListener('click', discardChanges);
+    q('#restore-draft-btn')?.addEventListener('click', restoreLocalDraft);
+    q('#delete-draft-btn')?.addEventListener('click', () => { clearLocalDraft(); showStatus('Rascunho local descartado.', 'success'); });
+    q('#project-search')?.addEventListener('input', filterProjectCards);
+    document.addEventListener('toggle', event => { if (event.target.matches?.('.project-editor-details') && event.target.open) { qa('.project-editor-details').forEach(other => { if (other !== event.target) other.open = false; }); } }, true);
 
     document.addEventListener('input', onFieldInput);
     document.addEventListener('change', onFieldInput);
@@ -177,6 +254,7 @@
 
     window.addEventListener('beforeunload', event => {
       if (!dirty) return;
+      storeLocalDraft();
       event.preventDefault();
       event.returnValue = '';
     });
@@ -339,6 +417,7 @@
     revision = data.revision || 1;
     renderAll();
     setDirty(false);
+    displayDraftRecovery();
     showStatus('Painel carregado.', 'success');
   }
 
@@ -356,6 +435,53 @@
     qa('[data-string-list]').forEach(renderStringList);
     qa('[data-object-list]').forEach(renderObjectList);
     updateStats();
+    refreshMediaPreviews();
+    filterProjectCards();
+  }
+
+  function refreshMediaPreviews() {
+    [
+      ['#showreel-cover-preview', getPath(config, 'showreel.cover')],
+      ['#about-photo-preview', getPath(config, 'about.image')]
+    ].forEach(([selector, value]) => {
+      const img = q(selector);
+      if (!img) return;
+      const url = String(value || '').trim();
+      const safe = /^(https?:\/\/|assets\/)/i.test(url);
+      img.hidden = !safe;
+      if (safe) img.src = url;
+      else img.removeAttribute('src');
+    });
+  }
+
+  function filterProjectCards() {
+    const input = q('#project-search');
+    const query = String(input?.value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const cards = qa('#project-list .portfolio-editor');
+    let count = 0;
+    cards.forEach(card => {
+      const index = Number(card.dataset.projectIndex);
+      const item = getPath(config, 'portfolio.items')?.[index] || {};
+      const haystack = [item.title, item.category, item.subtitle].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const match = !query || haystack.includes(query);
+      card.hidden = !match;
+      if (match) count++;
+    });
+    const label = q('#project-results');
+    if (label) label.textContent = query
+      ? count + ' de ' + cards.length + ' trabalho(s) encontrado(s)'
+      : cards.length + ' trabalho(s) cadastrado(s)';
+  }
+
+  function updateProjectSummary(card) {
+    if (!card) return;
+    const index = Number(card.dataset.projectIndex);
+    const item = getPath(config, 'portfolio.items')?.[index];
+    if (!item) return;
+    const title = q('.project-editor-copy strong', card);
+    const sub = q('.project-editor-copy small', card);
+    if (title) title.textContent = item.title?.trim() || 'Novo trabalho';
+    if (sub) sub.textContent = (item.category?.trim() || 'Sem categoria') + ' · ' + (item.video ? 'Vídeo adicionado' : 'Sem vídeo');
   }
 
   function updateStats() {
@@ -419,11 +545,16 @@
       }
 
       if (template === 'portfolio') {
-        return '<article class="repeat-card portfolio-editor">' + controls +
+        return '<article class="repeat-card portfolio-editor" data-project-index="' + index + '">' +
+          '<details class="project-editor-details"' + (index === 0 ? ' open' : '') + '>' +
+          '<summary class="project-editor-summary"><span class="project-editor-thumbnail">' +
+          (item.image && /^(https?:\\/\\/|assets\\/)/i.test(item.image) ? '<img src="' + esc(item.image) + '" alt="">' : '▶') +
+          '</span><span class="project-editor-copy"><strong>' + esc(item.title || 'Novo trabalho') + '</strong><small>' + esc(item.category || 'Sem categoria') + ' · ' + (item.video ? 'Vídeo adicionado' : 'Sem vídeo') + '</small></span><span class="project-editor-arrow" aria-hidden="true">⌄</span></summary>' +
+          '<div class="project-editor-body">' + controls +
           '<span class="card-index">' + String(index + 1).padStart(2, '0') + '</span>' +
           '<div class="form-grid two">' +
             objectInput(path, index, 'title', 'Nome do trabalho', item.title) +
-            objectInput(path, index, 'category', 'Categoria', item.category) +
+            '<label><span>Categoria</span><input type="text" list="portfolio-category-options" value="' + esc(item.category || '') + '" data-object-path="' + esc(path) + '" data-index="' + index + '" data-key="category" placeholder="Ex.: Eventos"></label>' +
           '</div>' +
           objectTextarea(path, index, 'story', 'Descrição do trabalho', item.story, 4) +
           '<details class="advanced-fields"><summary>Mais detalhes (opcional)</summary><div class="form-grid two">' +
@@ -445,7 +576,7 @@
             '</div>' +
           '</div>' +
           (item.video ? '<div class="video-linked"><span>Vídeo configurado</span><small>O botão ▶ aparecerá nesse projeto no site.</small></div>' : '') +
-        '</article>';
+          '</div></details></article>';
       }
 
       return '';
@@ -472,6 +603,7 @@
     if (target.dataset.path) {
       const value = target.type === 'checkbox' ? target.checked : target.value;
       setPath(config, target.dataset.path, value);
+      if (['showreel.cover', 'about.image'].includes(target.dataset.path)) refreshMediaPreviews();
       markDirty();
       return;
     }
@@ -490,6 +622,7 @@
       const item = Array.isArray(list) ? list[Number(target.dataset.index)] : null;
       if (item) {
         item[target.dataset.key] = target.value;
+        updateProjectSummary(target.closest('.portfolio-editor'));
         markDirty();
       }
     }
@@ -548,6 +681,7 @@
       list?.splice(Number(removeItem.dataset.index), 1);
       renderObjectList(q('[data-object-list="' + cssEscape(path) + '"]'));
       updateStats();
+      filterProjectCards();
       markDirty();
       return;
     }
@@ -557,6 +691,7 @@
       const path = moveItem.dataset.listPath;
       moveArrayItem(path, Number(moveItem.dataset.index), moveItem.dataset.moveItem);
       renderObjectList(q('[data-object-list="' + cssEscape(path) + '"]'));
+      filterProjectCards();
       return;
     }
 
@@ -603,13 +738,7 @@
 
     if (path === 'services.items') list.push({ title: 'Novo serviço', description: 'Descreva este serviço.' });
     else if (path === 'portfolio.items') list.push({
-      id: String(Date.now()),
-      category: 'Categoria',
-      title: 'Novo projeto',
-      subtitle: 'Subtítulo',
-      image: 'assets/logo-mark.svg?v=20260830-logo',
-      video: '',
-      story: 'Conte a história deste projeto.'
+      id: String(Date.now()), category: '', title: '', subtitle: '', image: '', video: '', story: ''
     });
     else if (path === 'faq.items') list.push({ question: 'Nova pergunta?', answer: 'Digite a resposta.' });
     else list.push({ title: 'Novo item', text: 'Digite o texto.' });
@@ -617,6 +746,18 @@
     renderObjectList(q('[data-object-list="' + cssEscape(path) + '"]'));
     updateStats();
     markDirty();
+    if (path === 'portfolio.items') {
+      const search = q('#project-search');
+      if (search) search.value = '';
+      const cards = qa('#project-list .portfolio-editor');
+      qa('.project-editor-details').forEach(item => { item.open = false; });
+      const latest = cards[cards.length - 1];
+      const detail = q('.project-editor-details', latest);
+      if (detail) detail.open = true;
+      filterProjectCards();
+      q('[data-key="title"]', latest)?.focus();
+      latest?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   function moveArrayItem(path, index, direction) {
@@ -633,7 +774,20 @@
   }
 
   async function saveConfig() {
-    if (!dirty || !config) return;
+    if (!dirty || !config || saving) return;
+    if (activeUploads > 0) { showStatus('Aguarde o envio da imagem ou do vídeo antes de publicar.', 'error', 7000); return; }
+    const projects = getPath(config, 'portfolio.items') || [];
+    const missing = projects.findIndex(item => !String(item.title || '').trim() || !String(item.category || '').trim());
+    if (missing !== -1) {
+      activatePanel('portfolio');
+      const search = q('#project-search');
+      if (search) search.value = '';
+      filterProjectCards();
+      const card = qa('#project-list .portfolio-editor')[missing];
+      if (card) { q('.project-editor-details', card).open = true; q('[data-key="' + (!String(projects[missing].title || '').trim() ? 'title' : 'category') + '"]', card)?.focus(); }
+      showStatus('Informe nome e categoria do trabalho antes de publicar.', 'error', 8000);
+      return;
+    }
 
     const invalidVideos = validateVideoConfig();
     if (invalidVideos.length) {
@@ -641,6 +795,9 @@
       return;
     }
 
+    saving = true;
+    setDirty(true);
+    const publishing = deepClone(config);
     saveBtn.disabled = true;
     if (mobileSaveBtn) mobileSaveBtn.disabled = true;
     saveBtn.textContent = 'Publicando…';
@@ -649,27 +806,34 @@
 
     const { data, error } = await client
       .from('stoski_site_config')
-      .update({ data: config })
+      .update({ data: publishing })
       .eq('id', 1)
       .select('data,revision,updated_at,updated_by')
       .single();
 
     saveBtn.textContent = 'Salvar e publicar';
     if (mobileSaveBtn) mobileSaveBtn.textContent = 'Salvar e publicar';
+    saving = false;
 
     if (error) {
       showStatus('Falha ao salvar: ' + error.message, 'error', 0);
-      saveBtn.disabled = false;
-      if (mobileSaveBtn) mobileSaveBtn.disabled = false;
+      setDirty(true);
       return;
     }
 
-    config = deepClone(data.data);
+    const moreChanges = JSON.stringify(config) !== JSON.stringify(publishing);
     savedConfig = deepClone(data.data);
     revision = data.revision;
-    renderAll();
-    setDirty(false);
-    showStatus('Publicado com sucesso. O site já pode carregar a nova versão.', 'success');
+    if (moreChanges) {
+      markDirty();
+      showStatus('Publicado! As alterações feitas durante o envio continuam pendentes. Publique novamente para incluí-las.', 'success', 9000);
+    } else {
+      config = deepClone(data.data);
+      renderAll();
+      setDirty(false);
+      clearLocalDraft();
+      showStatus('Publicado com sucesso. Abra Ver página para conferir o resultado.', 'success', 7000);
+    }
   }
 
   async function uploadFile(file, targetPath, objectMeta = null) {
@@ -699,6 +863,9 @@
     const folder = isVideo ? 'uploads/videos/' : 'uploads/images/';
     const path = folder + Date.now() + '-' + base + '.' + ext;
 
+    activeUploads++;
+    setDirty(dirty);
+    try {
     showStatus(isVideo ? 'Enviando vídeo…' : 'Enviando imagem…', 'info', 0);
     const { error } = await client.storage.from('stoski-media').upload(path, file, {
       cacheControl: '86400',
@@ -730,7 +897,12 @@
     }
 
     markDirty();
+    refreshMediaPreviews();
     showStatus((isVideo ? 'Vídeo' : 'Imagem') + ' enviado. Clique em “Salvar e publicar” para aplicar.', 'success');
+    } finally {
+      activeUploads = Math.max(0, activeUploads - 1);
+      setDirty(dirty);
+    }
   }
 
   document.addEventListener('change', async event => {
@@ -942,6 +1114,9 @@
     const moreMenu = active?.closest('.nav-more');
     if (moreMenu) moreMenu.open = true;
     q('#panel-title').textContent = active?.lastChild?.textContent.trim() || active?.textContent.trim() || 'Painel';
+    const page = ({ overview:'index.html', portfolio:'portfolio.html', videos:'portfolio.html', services:'servicos.html', faq:'servicos.html', process:'servicos.html', contact:'contato.html', about:'index.html', differentials:'index.html', sections:'index.html' })[name] || 'index.html';
+    const previewLink = q('#panel-preview-link');
+    if (previewLink) { previewLink.href = page; previewLink.setAttribute('aria-label', 'Abrir página do site correspondente a ' + name); }
     closeSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
