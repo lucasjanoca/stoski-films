@@ -24,7 +24,7 @@ Site oficial de Henrique Stoski (Stoski Films), desenvolvido pela InfoTech.io.
 
 O painel fica em `/admin.html` e não é exibido no rodapé público.
 
-O painel foi simplificado para o cliente: a Visão Geral exibe apenas o resumo de trabalhos, serviços e dúvidas, com atalhos para Portfólio, Vídeo em destaque, Serviços e Contato.
+O painel foi simplificado para o cliente: a Visão Geral exibe apenas o resumo de trabalhos, serviços e dúvidas, com atalhos para Portfólio, Vídeo em destaque, Serviços e Contato. A partir de novembro de 2026, a edição inclui busca rápida de trabalhos, cartões recolhíveis com capa, atalhos para visualizar as quatro páginas e recuperação de rascunho local por usuário.
 
 Ele permite:
 - adicionar, editar e reorganizar serviços e projetos com fotos e vídeos;
@@ -32,6 +32,11 @@ Ele permite:
 - editar apresentação, diferenciais, processo, perguntas e contatos;
 - enviar imagens e vídeos curtos diretamente nas telas relevantes;
 - mostrar ou esconder seções do site;
+- localizar trabalhos por nome/categoria e abrir um cartão por vez;
+- recuperar alterações não publicadas guardadas apenas neste navegador (rascunho local, sem publicação automática);
+- visualizar a página pública correspondente à área editada (após salvar/publicar);
+- evitar publicação enquanto uma mídia ainda está sendo enviada;
+- impedir publicação de projetos sem nome ou categoria, mostrando o campo a corrigir;
 - gerenciar administradores quando o usuário é proprietário.
 
 As telas técnicas **Identidade & SEO**, **Início**, **Aparência** e **Histórico** não são oferecidas ao cliente. Exportar, importar e restaurar configuração também não aparecem na Visão Geral. As revisões anteriores continuam preservadas no banco para manutenção técnica, sem expor a restauração no painel.
@@ -66,3 +71,14 @@ O painel está em `/admin.html`; não coloque senhas nem chaves secretas no repo
 ## Qualidade
 
 A workflow `Project quality check` valida arquivos obrigatórios, sintaxe JavaScript, estrutura HTML, acessibilidade básica, referências locais, CSS, manifest, sitemap, mídia, integração de vídeo, ausência de segredos e requisitos de segurança do CMS.
+
+## Orientação rápida ao Henrique
+
+1. Entre em `/admin.html` com sua conta autorizada.
+2. Na **Visão geral**, escolha **Meus trabalhos**, **Vídeo principal**, **Serviços** ou **Contato**.
+3. Em **Meus trabalhos**, use a busca, toque na capa do trabalho para abrir o editor ou clique em **Adicionar projeto**.
+4. Preencha o nome e a categoria, selecione uma capa e cole o link do YouTube (recomendado como **Não listado**). Teste o vídeo.
+5. Clique em **Salvar e publicar** para atualizar o site. **Ver página** abre o destino certo para conferir a publicação. A prévia pública mostra a versão publicada, não o rascunho.
+6. Um rascunho não publicado pode ser recuperado no mesmo navegador pelo mesmo usuário enquanto a versão no servidor não mudar e por até sete dias. O rascunho local não equivale a um backup da nuvem.
+
+**Segurança:** autenticação, usuários, permissões e RLS permanecem no Supabase existente. Evite salvar dados sensíveis nos campos de conteúdo do site.

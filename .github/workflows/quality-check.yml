@@ -23,7 +23,7 @@ jobs:
             README.md SECURITY.md index.html portfolio.html servicos.html contato.html admin.html .gitignore .nojekyll _headers
             assets/stoski-logo.svg assets/logo-mark.svg assets/favicon.svg
             assets/media/hero-casamento.webp assets/media/evento.webp assets/media/henrique.webp
-            css/styles.css css/extra.css css/polish.css css/pages.css css/admin.css
+            css/styles.css css/extra.css css/polish.css css/pages.css css/admin.css css/admin-upgrade.css
             js/main.js js/cms.js js/admin.js
             robots.txt sitemap.xml site.webmanifest
           )
@@ -195,5 +195,23 @@ jobs:
             grep -q 'css/pages.css?v=20261119' "$page"
           done
           grep -q 'css/polish.css?v=20261117-drag-close' index.html
-          grep -q 'js/admin.js?v=20261107-painel-premium' admin.html
+          grep -q 'js/admin.js?v=20261119-easy-editor' admin.html
           grep -q 'css/admin.css?v=20261107-painel-premium' admin.html
+          grep -q 'css/admin-upgrade.css?v=20261119-easy-editor' admin.html
+
+      - name: Validate new client editing experience
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path("admin.html").read_text(encoding="utf-8")
+          js = Path("js/admin.js").read_text(encoding="utf-8")
+          css = Path("css/admin-upgrade.css").read_text(encoding="utf-8")
+          for marker in ("id=\"panel-preview-link\"", "id=\"project-search\"", "data-template=\"portfolio\"", "id=\"draft-restore\"", "id=\"restore-draft-btn\"", "id=\"delete-draft-btn\"", "id=\"discard-btn\""):
+              assert marker in html, f"Admin control missing: {marker}"
+          for marker in ("function filterProjectCards", "function restoreLocalDraft", "function clearLocalDraft", "function updateProjectSummary", "activeUploads > 0", "function saveConfig"):
+              assert marker in js, f"Admin behavior missing: {marker}"
+          assert ".project-editor-summary" in css, "Compact project editor styles missing."
+          assert "portfolio.html" in js and "servicos.html" in js and "contato.html" in js, "Context preview routes missing."
+          print("Admin client experience audit OK.")
+          PY
