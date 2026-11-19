@@ -3,7 +3,7 @@
 (function () {
   const SUPABASE_URL = 'https://yncspxfsvlqdnodlsosb.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_jALAHHuvrV5oxj2mugWTCQ_stD_vFyN';
-  const CACHE_KEY = 'stoski_public_config_v2';
+  const CACHE_KEY = 'stoski_public_config_v3';
 
   if (!window.supabase?.createClient) return;
 
