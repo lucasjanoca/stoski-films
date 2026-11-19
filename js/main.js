@@ -34,15 +34,6 @@ let PROJECTS = {
 const qs = (selector, scope = document) => scope?.querySelector(selector) || null;
 const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
-/* Temporary, clearly attributed YouTube example. Keep it separate from the client's CMS. */
-const SHOWREEL_DEMO = Object.freeze({
-  title: 'Spring — vídeo demonstrativo de Blender Studio',
-  category: 'Demonstração',
-  subtitle: '© Blender Foundation · Não é uma produção da Stoski Films',
-  image: 'https://i.ytimg.com/vi/WhWc3b3KhnY/maxresdefault.jpg',
-  video: 'https://www.youtube.com/watch?v=WhWc3b3KhnY',
-  story: 'Vídeo usado apenas para demonstrar a navegação do carrossel.'
-});
 
 function applyRuntimeConfig(cfg) {
   if (!cfg || typeof cfg !== 'object') return;
@@ -381,7 +372,7 @@ function stopPortfolioVideo() {
 }
 
 async function openVideo(id, trigger) {
-  const project = PROJECTS[id] || (id === 'showreel-demo' ? SHOWREEL_DEMO : null);
+  const project = PROJECTS[id];
   if (!project || !videoModal) return;
   const raw = safeMediaUrl(project.video);
   if (!raw) return;
