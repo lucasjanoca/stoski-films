@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/admin.css?v=20261107-painel-premium">
+  <link rel="stylesheet" href="css/admin-upgrade.css?v=20261119-easy-editor">
 </head>
 <body>
   <div class="admin-shell">
@@ -104,13 +105,15 @@
           </div>
           <div class="topbar-actions">
             <span class="save-indicator" id="save-indicator">Sem alterações</span>
-            <a class="btn subtle" href="index.html" target="_blank" rel="noopener">Ver site ↗</a>
+            <a class="btn subtle context-preview" id="panel-preview-link" href="index.html" target="_blank" rel="noopener noreferrer">Ver página ↗</a>
+            <button class="btn subtle discard-control" id="discard-btn" type="button" disabled>Desfazer</button>
             <button class="btn primary" id="save-btn" type="button">Salvar e publicar</button>
           </div>
         </header>
 
         <main class="content">
           <div id="global-status" class="status global-status" role="status" aria-live="polite"></div>
+          <div class="draft-restore hidden" id="draft-restore" role="region" aria-label="Recuperação de rascunho"><div><strong>Você tem um rascunho neste aparelho</strong><p>Alterações guardadas neste navegador, ainda não publicadas.</p></div><div class="draft-actions"><button class="btn primary small" type="button" id="restore-draft-btn">Continuar edição</button><button class="btn subtle small" type="button" id="delete-draft-btn">Descartar rascunho</button></div></div>
 
           <section class="panel active" data-panel-id="overview">
             <div class="welcome-card">
@@ -123,6 +126,15 @@
                   <a class="btn subtle" href="index.html" target="_blank" rel="noopener noreferrer">Visualizar meu site <span aria-hidden="true">↗</span></a>
                 </div>
                 <p class="welcome-guidance">Escolha uma área, faça a alteração e toque em <strong>Salvar e publicar</strong>.</p>
+              </div>
+            </div>
+            <div class="admin-pages">
+              <div class="admin-pages-head"><p class="eyebrow">Ver resultado</p><h2>As quatro páginas do site</h2><p>Abra a página que deseja conferir. Para ver alterações novas, publique primeiro.</p></div>
+              <div class="admin-pages-grid">
+                <a href="index.html" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">01</span><strong>Início</strong><small>Apresentação e perfil ↗</small></a>
+                <a href="portfolio.html" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">02</span><strong>Portfólio</strong><small>Fotos e vídeos ↗</small></a>
+                <a href="servicos.html" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">03</span><strong>Serviços</strong><small>O que você oferece ↗</small></a>
+                <a href="contato.html" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">04</span><strong>Contato</strong><small>WhatsApp e orçamento ↗</small></a>
               </div>
             </div>
             <div class="overview-section-heading">
@@ -184,15 +196,20 @@
 
           <section class="panel" data-panel-id="portfolio">
             <div class="panel-head">
-              <div><p class="eyebrow">Trabalhos</p><h1>Portfólio</h1><p>Adicione um trabalho, escolha uma capa e cole o link do vídeo. Os campos extras são opcionais.</p></div>
+              <div><p class="eyebrow">Trabalhos</p><h1>Portfólio</h1><p>1. Adicione um trabalho → 2. Escolha a capa → 3. Cole o vídeo → 4. Publique. Abra apenas o projeto que deseja editar.</p></div>
               <button class="btn primary" data-add-item="portfolio.items" type="button">Adicionar projeto</button>
             </div>
-            <div class="form-grid two">
+            <details class="page-copy-details"><summary>Editar os textos da página do portfólio (opcional)</summary><div class="form-grid two">
               <label><span>Chamada</span><input data-path="portfolio.kicker" type="text"></label>
               <label><span>Título</span><input data-path="portfolio.title" type="text"></label>
               <label class="full"><span>Texto do link para Instagram</span><input data-path="portfolio.instagramLabel" type="text"></label>
+            </div></details>
+            <div class="project-tools">
+              <label class="project-search-label"><span>Localizar um trabalho</span><input type="search" id="project-search" placeholder="Pesquise por nome ou categoria..." autocomplete="off" aria-controls="project-list"></label>
+              <p id="project-results" role="status" aria-live="polite">Os projetos aparecem abaixo.</p>
             </div>
-            <div class="repeater cards" data-object-list="portfolio.items" data-template="portfolio"></div>
+            <datalist id="portfolio-category-options"><option value="Filme de casamento"></option><option value="Eventos"></option><option value="Reels & comercial"></option><option value="Produção audiovisual"></option></datalist>
+            <div class="repeater cards" id="project-list" data-object-list="portfolio.items" data-template="portfolio"></div>
           </section>
 
           <section class="panel" data-panel-id="videos">
@@ -213,12 +230,12 @@
               <a class="btn primary" href="https://studio.youtube.com/" target="_blank" rel="noopener">Abrir YouTube Studio ↗</a>
             </div>
 
-            <div class="form-grid two">
+            <details class="page-copy-details"><summary>Editar título e textos do vídeo principal (opcional)</summary><div class="form-grid two">
               <label><span>Chamada</span><input data-path="showreel.kicker" type="text"></label>
               <label><span>Botão</span><input data-path="showreel.buttonLabel" type="text"></label>
               <label class="full"><span>Título</span><input data-path="showreel.title" type="text"></label>
               <label class="full"><span>Texto</span><textarea data-path="showreel.text" rows="3"></textarea></label>
-            </div>
+            </div></details>
 
             <div class="section-block">
               <div class="section-block-head">
@@ -232,6 +249,7 @@
                 <input data-path="showreel.cover" type="text" placeholder="https://...">
                 <label class="btn file-btn small">Enviar capa<input type="file" accept="image/*" data-upload-target="showreel.cover"></label>
               </div>
+              <img id="showreel-cover-preview" class="admin-cover-preview" alt="Capa atual do vídeo principal" hidden>
             </div>
 
             <div class="section-block">
@@ -266,6 +284,7 @@
                 <input data-path="about.image" type="text">
                 <label class="btn file-btn">Enviar foto<input type="file" accept="image/*" data-upload-target="about.image"></label>
               </div>
+              <img id="about-photo-preview" class="admin-cover-preview" alt="Foto atual do Henrique" hidden>
             </div>
           </section>
 
@@ -354,7 +373,7 @@
         </main>
       </div>
       <div class="mobile-save-bar" id="mobile-save-bar" hidden>
-        <div class="mobile-save-copy"><strong>Você fez alterações</strong><small>Salve para atualizar o site</small></div>
+        <div class="mobile-save-copy"><strong>Você fez alterações</strong><small>Guardei um rascunho neste aparelho</small></div>
         <button class="btn primary" id="mobile-save-btn" type="button">Salvar e publicar</button>
       </div>
       <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
@@ -413,6 +432,6 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/admin.js?v=20261107-painel-premium" defer></script>
+  <script src="js/admin.js?v=20261119-easy-editor" defer></script>
 </body>
 </html>
