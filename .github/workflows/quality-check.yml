@@ -192,7 +192,7 @@ jobs:
           for page in index.html portfolio.html servicos.html contato.html; do
             grep -q 'js/cms.js?v=20261125-service-sync' "$page"
             grep -Fq 'js/main.js?v=20261125-servicos' "$page"
-            grep -Fq 'css/pages.css?v=20261125-contatos' "$page"
+            grep -Fq 'css/pages.css?v=20261125-contact-icons' "$page"
           done
           grep -q 'css/polish.css?v=20261117-drag-close' index.html
           grep -q 'js/admin.js?v=20261125-service-editor' admin.html

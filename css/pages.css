@@ -80,27 +80,78 @@ body[data-page] .showreel[hidden]{display:none!important}
   .services-list .service-link::after { transition: none; }
 }
 
-/* Direct contacts immediately after the quote form help. */
+/* Compact quote footer: button, helper and two direct contact rows. */
+.budget-form .submit-btn {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 999px;
+  margin: 0;
+}
+.budget-form .form-help {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6a655e;
+}
 .budget-form .budget-contacts {
   min-width: 0;
-  margin-top: 0;
+  margin: 0;
+  border-top: 1px solid rgba(16,16,16,.16);
 }
 .budget-form .budget-contacts .instagram-card {
-  margin-top: 0;
-  padding-block: 16px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 0;
+  border: 0;
+  min-height: 58px;
+  color: #171512;
 }
 .budget-form .budget-contacts .instagram-card + .instagram-card {
-  margin-top: -1px;
+  margin: 0;
+  border-top: 1px solid rgba(16,16,16,.16);
+}
+.budget-form .budget-contacts .contact-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.budget-form .budget-contacts .contact-label,
+.budget-form .budget-contacts .contact-label > span {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+}
+.budget-form .budget-contacts .contact-icon {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
 }
 .budget-form .budget-contacts .instagram-card strong {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
-.budget-form .form-help { margin-bottom: 0; }
+.budget-form .budget-contacts .instagram-card:hover,
+.budget-form .budget-contacts .instagram-card:focus-visible {
+  color: #795a30;
+}
+.budget-form .budget-contacts .instagram-card:focus-visible {
+  outline: 2px solid #795a30;
+  outline-offset: 3px;
+}
 .budget-form .form-status:empty { display: none; }
-@media (max-width: 560px) {
-  .budget-form .budget-contacts .instagram-card {
-    padding-block: 14px;
-    grid-template-columns: minmax(0,1fr) minmax(0,1.5fr);
-    gap: 8px;
-  }
+@media (max-width: 420px) {
+  .budget-form .budget-contacts .instagram-card { gap: 8px; padding-block: 14px; }
+  .budget-form .budget-contacts .contact-label { gap: 8px; }
+  .budget-form .budget-contacts .contact-label,
+  .budget-form .budget-contacts .contact-label > span,
+  .budget-form .budget-contacts .instagram-card strong { font-size: 12px; }
+  .budget-form .budget-contacts .contact-icon { width: 17px; height: 17px; flex-basis: 17px; }
 }
