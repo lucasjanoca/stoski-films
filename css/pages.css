@@ -41,3 +41,41 @@ body[data-page] .showreel[hidden]{display:none!important}
 .work-filter{padding:10px 13px;font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.work-filter{transition:none}}
+
+
+/* Clickable quote services: retain the existing grid and cinematic palette. */
+.services-list .service-link {
+  position: relative;
+  padding-right: 2rem;
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: rgba(199,166,107,.13);
+}
+.services-list .service-link::after {
+  content: "↗";
+  position: absolute;
+  top: 1.5rem;
+  right: .25rem;
+  color: var(--accent-light);
+  font-size: 1.1rem;
+  transition: transform .2s ease;
+}
+.services-list .service-link:hover,
+.services-list .service-link:focus-visible {
+  background: rgba(199,166,107,.07);
+}
+.services-list .service-link:hover h3,
+.services-list .service-link:focus-visible h3 {
+  color: var(--accent-light);
+}
+.services-list .service-link:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: -2px;
+}
+.services-list .service-link:hover::after {
+  transform: translate(2px,-2px);
+}
+#orcamento { scroll-margin-top: calc(var(--header-h) + 12px); }
+@media (prefers-reduced-motion: reduce) {
+  .services-list .service-link::after { transition: none; }
+}

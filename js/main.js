@@ -612,3 +612,68 @@ document.addEventListener('stoski:config', () => {
   const selected = qs('[data-work-filter][aria-pressed="true"]')?.dataset.workFilter || 'todos';
   applyProjectFilter(selected);
 });
+
+
+/* Service cards link to the quote form, including CMS-rendered cards. */
+const serviceAliases = new Map([
+  ['Filmes de casamento', 'Filme de casamento'],
+  ['Eventos & celebrações', 'Filmagem de evento'],
+  ['Reels & vídeos comerciais', 'Reels / vídeo comercial'],
+  ['Edição & pós-produção', 'Edição & pós-produção'],
+  ['Produção audiovisual', 'Produção audiovisual']
+]);
+function serviceQuoteUrl(title) {
+  return 'contato.html?servico=' + encodeURIComponent(title) + '#orcamento';
+}
+function enableServiceLinks() {
+  qsa('.services-list .service-row').forEach(row => {
+    const title = row.querySelector('h3')?.textContent.trim();
+    if (!title) return;
+    const link = row.tagName === 'A' ? row : document.createElement('a');
+    if (link !== row) {
+      link.className = row.className;
+      link.append(...row.childNodes);
+      row.replaceWith(link);
+    }
+    link.href = serviceQuoteUrl(title);
+    link.classList.add('service-link');
+    link.setAttribute('aria-label', 'Solicitar orçamento: ' + title);
+  });
+}
+const quoteService = qs('#service');
+const requestedService = new URLSearchParams(window.location.search).get('servico')?.trim() || '';
+let serviceChanged = false;
+let chosenService = '';
+quoteService?.addEventListener('change', () => {
+  serviceChanged = true;
+  chosenService = quoteService.value;
+});
+function selectQuotedService(config) {
+  if (!quoteService) return;
+  const requested = serviceChanged ? chosenService : requestedService;
+  if (!requested) {
+    if (serviceChanged) quoteService.value = '';
+    return;
+  }
+  const alias = serviceAliases.get(requested);
+  const values = [...quoteService.options].map(option => option.value);
+  const match = values.includes(requested) ? requested : values.includes(alias) ? alias : null;
+  if (match !== null) {
+    quoteService.value = match;
+    return;
+  }
+  const configured = config?.services?.items;
+  const known = serviceAliases.has(requested) || (Array.isArray(configured) &&
+    configured.some(item => String(item.title || '').trim() === requested));
+  if (known || serviceChanged) {
+    const option = new Option(requested, requested);
+    quoteService.add(option);
+    quoteService.value = requested;
+  }
+}
+enableServiceLinks();
+selectQuotedService(window.STOSKI_CONFIG);
+document.addEventListener('stoski:config', event => {
+  enableServiceLinks();
+  selectQuotedService(event.detail);
+});
