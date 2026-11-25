@@ -736,7 +736,7 @@
       setPath(config, path, list);
     }
 
-    if (path === 'services.items') list.push({ title: 'Novo serviço', description: 'Descreva este serviço.' });
+    if (path === 'services.items') list.push({ title: '', description: '' });
     else if (path === 'portfolio.items') list.push({
       id: String(Date.now()), category: '', title: '', subtitle: '', image: '', video: '', story: ''
     });
@@ -746,6 +746,12 @@
     renderObjectList(q('[data-object-list="' + cssEscape(path) + '"]'));
     updateStats();
     markDirty();
+    if (path === 'services.items') {
+      const cards = qa('[data-object-list="services.items"] .repeat-card');
+      const latest = cards[cards.length - 1];
+      q('[data-key="title"]', latest)?.focus();
+      latest?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     if (path === 'portfolio.items') {
       const search = q('#project-search');
       if (search) search.value = '';
@@ -776,6 +782,26 @@
   async function saveConfig() {
     if (!dirty || !config || saving) return;
     if (activeUploads > 0) { showStatus('Aguarde o envio da imagem ou do vídeo antes de publicar.', 'error', 7000); return; }
+    const services = getPath(config, 'services.items') || [];
+    qa('[data-object-path="services.items"]').forEach(field => {
+      const item = services[Number(field.dataset.index)];
+      if (item && ['title', 'description'].includes(field.dataset.key)) item[field.dataset.key] = field.value;
+    });
+    const incomplete = services.findIndex(item => {
+      const title = String(item.title || '').trim();
+      const description = String(item.description || '').trim();
+      return !title || !description || title === 'Novo serviço' || description === 'Descreva este serviço.';
+    });
+    if (incomplete !== -1) {
+      activatePanel('services');
+      const card = qa('[data-object-list="services.items"] .repeat-card')[incomplete];
+      const item = services[incomplete];
+      const title = String(item.title || '').trim();
+      q('[data-key="' + (!title || title === 'Novo serviço' ? 'title' : 'description') + '"]', card)?.focus();
+      card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showStatus('Preencha o nome e a descrição do serviço ' + (incomplete + 1) + ' antes de publicar.', 'error', 8000);
+      return;
+    }
     const projects = getPath(config, 'portfolio.items') || [];
     const missing = projects.findIndex(item => !String(item.title || '').trim() || !String(item.category || '').trim());
     if (missing !== -1) {

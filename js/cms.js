@@ -188,10 +188,14 @@
     text('.services-note', services.note);
     const list = q('.services-list');
     if (!list || !Array.isArray(services.items)) return;
-    list.innerHTML = services.items.map((item, index) =>
-      '<article class="service-row reveal visible"><span>' + String(index + 1).padStart(2, '0') + '</span><h3>' +
-      escapeHtml(item.title || '') + '</h3><p>' + escapeHtml(item.description || '') + '</p></article>'
-    ).join('');
+    list.innerHTML = services.items.filter(validService).map((item, index) => {
+      const title = String(item.title).trim();
+      const href = 'contato.html?servico=' + encodeURIComponent(title) + '#orcamento';
+      return '<a class="service-row reveal visible service-link" href="' + escapeHtml(href) +
+        '" aria-label="' + escapeHtml('Solicitar orçamento: ' + title) + '"><span>' +
+        String(index + 1).padStart(2, '0') + '</span><h3>' + escapeHtml(title) +
+        '</h3><p>' + escapeHtml(item.description) + '</p></a>';
+    }).join('');
   }
 
   function applyAbout(about = {}, social = {}) {
@@ -277,15 +281,29 @@
     if (footerWhats) footerWhats.href = whatsappUrl(social.whatsappNumber, '');
   }
 
-  function applyBudget(budget = {}) {
+  function validService(item) {
+    const title = String(item?.title || '').trim();
+    const description = String(item?.description || '').trim();
+    return Boolean(title && description && title !== 'Novo serviço' && description !== 'Descreva este serviço.');
+  }
+
+  function applyBudget(budget = {}, services = {}) {
     text('.budget-intro .section-kicker', budget.kicker);
     text('#budget-title', budget.title);
     text('.budget-intro > p:not(.section-kicker)', budget.intro);
     const select = q('#service');
-    if (select && Array.isArray(budget.serviceOptions)) {
-      select.innerHTML = '<option value="">Selecione</option>' + budget.serviceOptions.map(item =>
-        '<option>' + escapeHtml(item) + '</option>'
-      ).join('');
+    if (select) {
+      const previous = select.value;
+      const configured = Array.isArray(budget.serviceOptions) ? budget.serviceOptions : [...select.options].map(option => option.value);
+      const aliases = new Map([
+        ['Filmes de casamento', 'Filme de casamento'],
+        ['Eventos & celebrações', 'Filmagem de evento'],
+        ['Reels & vídeos comerciais', 'Reels / vídeo comercial']
+      ]);
+      const titles = Array.isArray(services.items) ? services.items.filter(validService).map(item => String(item.title).trim()) : [];
+      const options = [...new Set([...titles.map(title => aliases.get(title) || title), ...configured.map(item => String(item || '').trim())].filter(Boolean))];
+      select.replaceChildren(new Option('Selecione', ''), ...options.map(value => new Option(value, value)));
+      if (options.includes(previous)) select.value = previous;
     }
   }
 
@@ -348,7 +366,7 @@
     text('.quote-band p', config.quote ? '“' + config.quote + '”' : '');
     applyFaq(config.faq);
     applySocial(config.social);
-    applyBudget(config.budget);
+    applyBudget(config.budget, config.services);
     applyFooter(config.footer);
     applyVisibility(config.visibility, config);
     window.STOSKI_CONFIG = config;
@@ -356,11 +374,6 @@
   }
 
   async function boot() {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) applyConfig(JSON.parse(cached));
-    } catch (_) {}
-
     try {
       const { data, error } = await client
         .from('stoski_site_config')
@@ -374,6 +387,10 @@
       }
     } catch (error) {
       console.warn('[Stoski CMS] Usando conteúdo local porque o conteúdo remoto não pôde ser carregado.', error?.message || error);
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) applyConfig(JSON.parse(cached));
+      } catch (_) {}
     }
   }
 
