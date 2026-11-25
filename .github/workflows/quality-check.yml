@@ -191,8 +191,8 @@ jobs:
         run: |
           for page in index.html portfolio.html servicos.html contato.html; do
             grep -q 'js/cms.js?v=20261119' "$page"
-            grep -q 'js/main.js?v=20261119' "$page"
-            grep -q 'css/pages.css?v=20261119' "$page"
+            grep -Fq 'js/main.js?v=20261125-servicos' "$page"
+            grep -Fq 'css/pages.css?v=20261125-servicos' "$page"
           done
           grep -q 'css/polish.css?v=20261117-drag-close' index.html
           grep -q 'js/admin.js?v=20261119-easy-editor' admin.html
