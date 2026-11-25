@@ -79,3 +79,28 @@ body[data-page] .showreel[hidden]{display:none!important}
 @media (prefers-reduced-motion: reduce) {
   .services-list .service-link::after { transition: none; }
 }
+
+/* Direct contacts immediately after the quote form help. */
+.budget-form .budget-contacts {
+  min-width: 0;
+  margin-top: 0;
+}
+.budget-form .budget-contacts .instagram-card {
+  margin-top: 0;
+  padding-block: 16px;
+}
+.budget-form .budget-contacts .instagram-card + .instagram-card {
+  margin-top: -1px;
+}
+.budget-form .budget-contacts .instagram-card strong {
+  overflow-wrap: anywhere;
+}
+.budget-form .form-help { margin-bottom: 0; }
+.budget-form .form-status:empty { display: none; }
+@media (max-width: 560px) {
+  .budget-form .budget-contacts .instagram-card {
+    padding-block: 14px;
+    grid-template-columns: minmax(0,1fr) minmax(0,1.5fr);
+    gap: 8px;
+  }
+}
