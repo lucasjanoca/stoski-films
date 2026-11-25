@@ -39,9 +39,7 @@ jobs:
         shell: bash
         run: |
           for attempt in {1..12}; do
-            if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=github-pages" --jq '.artifacts[] | select(.expired == false) | .id' | grep -Eq '^[0-9]+        id: deployment
-        uses: actions/deploy-pages@v4
-; then
+            if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=github-pages" --jq '.artifacts[] | select(.expired == false) | .id' | grep -Eq '^[0-9]+$'; then
               echo "Pages artifact is available."
               exit 0
             fi
