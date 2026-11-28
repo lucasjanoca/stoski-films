@@ -216,3 +216,5 @@ body[data-page="contact"] .budget:has(.quote-builder){grid-template-columns:minm
 .service-package-link:hover,.service-package-link:focus-visible{border-color:var(--accent-light);}
 @media(max-width:900px){body[data-page="contact"] .budget:has(.quote-builder){grid-template-columns:minmax(0,1fr);gap:26px;}}
 @media(max-width:480px){.quote-step{padding:14px;gap:13px}.quote-service-content{flex-direction:column;align-items:stretch;gap:9px}.quote-toggle label{flex:1}.quote-toggle span{padding:11px 8px}.quote-service-choice{padding:9px 10px 10px}.quote-step-head>span{width:30px;height:30px;flex-basis:30px}.quote-builder .form-row{gap:10px;}}
+
+.quote-overlap-note{font-size:12px;line-height:1.55;color:#685840;background:#f0e8d7;border:1px solid #d8c7a9;border-radius:8px;padding:10px 12px;margin:0;}
