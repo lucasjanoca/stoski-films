@@ -155,3 +155,16 @@ body[data-page] .showreel[hidden]{display:none!important}
   .budget-form .budget-contacts .instagram-card strong { font-size: 12px; }
   .budget-form .budget-contacts .contact-icon { width: 17px; height: 17px; flex-basis: 17px; }
 }
+
+/* Service categories: accessible native disclosure, no JS required. */
+.service-category { border-bottom: 1px solid var(--line); }
+.service-category > summary { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:14px; padding:22px 0; cursor:pointer; list-style:none; }
+.service-category > summary::-webkit-details-marker { display:none; }
+.service-category > summary strong { font-family:Manrope,sans-serif; font-size:clamp(20px,3vw,30px); font-weight:500; }
+.service-category > summary small { font-size:12px; color:var(--muted); white-space:nowrap; }
+.service-category > summary::after { content:'+'; color:var(--accent); font-size:24px; line-height:1; }
+.service-category[open] > summary::after { content:'−'; }
+.service-category > summary:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+.service-category-items { border-top:1px solid var(--line); }
+.service-category-items .service-row:last-child { border-bottom:0; }
+@media(max-width:560px){.service-category > summary{gap:9px;padding:19px 0}.service-category > summary small{font-size:11px}}
