@@ -208,7 +208,7 @@
       return '<details class="service-category" data-category="' + escapeHtml(category) + '"' +
         (opened.has(category) ? ' open' : '') + '><summary><strong>' + escapeHtml(category) +
         '</strong><small>' + entries.length + (entries.length === 1 ? ' serviço' : ' serviços') +
-        '</small></summary><div class="service-category-items">' + rows + '</div></details>';
+        '</small></summary><div class="service-category-items"><a class="service-package-link" href="contato.html?evento=' + encodeURIComponent(category) + '#orcamento">Montar meu pacote ↗</a>' + rows + '</div></details>';
     }).join('');
   }
 
