@@ -535,9 +535,14 @@ function buildWhatsAppMessage(data) {
     WHATSAPP_GREETING,
     '',
     `*Nome:* ${data.get('name')}`,
-    `*Meu WhatsApp:* ${data.get('whatsapp')}`,
-    `*Serviço:* ${data.get('service')}`
+    `*Meu WhatsApp:* ${data.get('whatsapp')}`
   ];
+  if (data.get('eventType')) {
+    lines.push(`*Tipo de evento:* ${data.get('eventType')}`, '', '*Serviços desejados:*');
+    for (const service of data.getAll('selectedService')) lines.push('• ' + service);
+  } else {
+    lines.push(`*Serviço:* ${data.get('service')}`);
+  }
   const date=String(data.get('date')||'').trim();
   const time=String(data.get('time')||'').trim();
   const city=String(data.get('city')||'').trim();
@@ -554,17 +559,19 @@ form?.addEventListener('submit', event => {
   event.preventDefault();
   const required=qsa('[required]',form);
   const valid=required.map(validateField).every(Boolean);
-  if (!valid) {
+  const packageValid=quotePackage ? quotePackage.validate() : true;
+  if (!valid || !packageValid) {
     if (status) status.textContent='Revise os campos destacados antes de continuar.';
-    qs('.field.invalid input, .field.invalid select, .field.invalid textarea',form)?.focus();
+    if (!packageValid && quotePackage) quotePackage.focusInvalid();
+    else qs('.field.invalid input, .field.invalid select, .field.invalid textarea',form)?.focus();
     return;
   }
   const data=new FormData(form);
+  if (quotePackage) quotePackage.selected().forEach(title => data.append('selectedService', title));
   const message=buildWhatsAppMessage(data);
   const url=`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
   if (status) status.textContent='Abrindo o WhatsApp do Henrique com sua solicitação pronta…';
-  const popup=window.open(url,'_blank','noopener,noreferrer');
-  if (!popup) window.location.href=url;
+  window.location.assign(url);
 });
 
 qsa('a[href*="instagram.com/stoski_films"]').forEach(link => { link.href=INSTAGRAM_URL; });
@@ -613,6 +620,192 @@ document.addEventListener('stoski:config', () => {
   applyProjectFilter(selected);
 });
 
+
+
+// Configurador de pacotes: o catálogo do ADM é a fonte principal; HTML local é a contingência.
+function initQuotePackage() {
+  const eventSelect = qs('#event-type');
+  if (!eventSelect) return null;
+  const step = qs('#quote-services-step');
+  const list = qs('#quote-services');
+  const count = qs('#quote-service-count');
+  const clear = qs('#quote-clear');
+  const error = qs('#quote-selection-error');
+  const summaryEvent = qs('#quote-summary-event');
+  const summaryList = qs('#quote-summary-list');
+  const empty = qs('#quote-summary-empty');
+  const params = new URLSearchParams(window.location.search);
+  const requestTitle = params.get('servico')?.trim() || '';
+  const requestCategory = params.get('evento')?.trim() || '';
+  const aliases = new Map([
+    ['Filmes de casamento','Filme de casamento'],
+    ['Filmagem de evento','Eventos & celebrações'],
+    ['Reels / vídeo comercial','Reels & vídeos comerciais']
+  ]);
+  const normalizeTitle = value => aliases.get(value) || value;
+  const prettyCategory = value => ({'Casamentos':'Casamento','15 anos':'15 anos','Outros serviços':'Outros eventos e projetos'})[value] || value;
+  const selection = new Map();
+  let catalog = [];
+  let interacted = false;
+  let requestedApplied = false;
+  let fallback = [];
+  try { fallback = JSON.parse(qs('#quote-catalog')?.textContent || '[]'); } catch (_) {}
+
+  function getSelection(category = eventSelect.value) {
+    if (!selection.has(category)) selection.set(category, new Set());
+    return selection.get(category);
+  }
+  function visibleItems() { return catalog.filter(item => item.category === eventSelect.value); }
+  function selected() {
+    const chosen = getSelection();
+    return visibleItems().filter(item => chosen.has(item.title)).map(item => item.title);
+  }
+  function clearError() {
+    error.hidden = true;
+    error.textContent = '';
+  }
+  function refreshSummary() {
+    const chosen = selected();
+    const length = chosen.length;
+    count.textContent = length + (length === 1 ? ' serviço selecionado' : ' serviços selecionados');
+    clear.disabled = length === 0;
+    summaryEvent.textContent = eventSelect.value ? prettyCategory(eventSelect.value) : 'Escolha o tipo de evento';
+    summaryList.replaceChildren(...chosen.map(title => {
+      const li = document.createElement('li');
+      const label = document.createElement('span');
+      label.textContent = title;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'quote-remove';
+      remove.textContent = 'Remover';
+      remove.setAttribute('aria-label', 'Remover ' + title);
+      remove.addEventListener('click', () => {
+        getSelection().delete(title);
+        const row = Array.from(list.querySelectorAll('.quote-service-choice')).find(el => el.dataset.title === title);
+        const no = row?.querySelector('input[value="nao"]');
+        if (no) no.checked = true;
+        refreshSummary();
+        (no || eventSelect).focus();
+      });
+      li.append(label, remove);
+      return li;
+    }));
+    empty.hidden = length > 0;
+    if (length > 0) clearError();
+  }
+  function renderServices() {
+    step.hidden = !eventSelect.value;
+    list.replaceChildren();
+    clearError();
+    if (!eventSelect.value) { refreshSummary(); return; }
+    const chosen = getSelection();
+    visibleItems().forEach((item, index) => {
+      const row = document.createElement('fieldset');
+      row.className = 'quote-service-choice';
+      row.dataset.title = item.title;
+      const legend = document.createElement('legend');
+      legend.textContent = item.title;
+      const content = document.createElement('div');
+      content.className = 'quote-service-content';
+      const description = document.createElement('p');
+      description.textContent = item.description || 'Inclua esta opção na sua solicitação.';
+      const toggle = document.createElement('div');
+      toggle.className = 'quote-toggle';
+      for (const [value,label] of [['nao','Não'],['sim','Sim']]) {
+        const option = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'quoteChoice' + index;
+        input.value = value;
+        input.checked = chosen.has(item.title) === (value === 'sim');
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        input.addEventListener('change', () => {
+          interacted = true;
+          if (value === 'sim') chosen.add(item.title); else chosen.delete(item.title);
+          refreshSummary();
+        });
+        option.append(input,caption);
+        toggle.append(option);
+      }
+      content.append(description,toggle);
+      row.append(legend,content);
+      list.append(row);
+    });
+    refreshSummary();
+  }
+  function loadCatalog(config) {
+    const previousCategory = eventSelect.value;
+    const source = Array.isArray(config?.services?.items) ? config.services.items : fallback;
+    const seen = new Set();
+    catalog = [];
+    for (const item of source) {
+      const title = String(item?.title || '').trim();
+      const description = String(item?.description || '').trim();
+      const category = String(item?.category || 'Outros serviços').trim() || 'Outros serviços';
+      if (!title || !description || title === 'Novo serviço' || description === 'Descreva este serviço.') continue;
+      const key = category + '\\u0000' + title;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      catalog.push({ title, description, category });
+    }
+    // Opções extras do painel de contato só entram em Outros serviços e não duplicam o catálogo.
+    // Os nomes legados que já foram migrados não ressurgem se o ADM remover o serviço original.
+    const legacy = new Set(['Filme de casamento','Filmes de casamento','Filmagem de evento','Eventos & celebrações','Reels / vídeo comercial','Reels & vídeos comerciais','Edição & pós-produção','Produção audiovisual']);
+    const extras = Array.isArray(config?.budget?.serviceOptions) ? config.budget.serviceOptions : ['Outro projeto em vídeo'];
+    for (const raw of extras) {
+      const title = String(raw || '').trim();
+      if (!title || legacy.has(title) || catalog.some(item => item.title === title || item.title === normalizeTitle(title))) continue;
+      catalog.push({title,description:'Conte os detalhes do projeto no formulário.',category:'Outros serviços'});
+    }
+    const categories = [...new Set(catalog.map(item => item.category))];
+    eventSelect.replaceChildren(new Option('Selecione seu evento',''), ...categories.map(category => new Option(prettyCategory(category),category)));
+    if (categories.includes(previousCategory)) eventSelect.value = previousCategory;
+    // A atualização do CMS nunca desfaz uma escolha válida feita enquanto carregava.
+    for (const [category, chosen] of selection) {
+      for (const title of chosen) if (!catalog.some(item => item.category === category && item.title === title)) chosen.delete(title);
+    }
+    if (!interacted && !requestedApplied) {
+      const item = catalog.find(item => item.title === requestTitle || item.title === normalizeTitle(requestTitle));
+      if (item) {
+        eventSelect.value = item.category;
+        getSelection(item.category).add(item.title);
+        requestedApplied = true;
+      } else if (categories.includes(requestCategory)) {
+        eventSelect.value = requestCategory;
+        requestedApplied = true;
+      }
+    }
+    renderServices();
+  }
+  eventSelect.addEventListener('change', () => {
+    interacted = true;
+    renderServices();
+  });
+  clear.addEventListener('click', () => {
+    interacted = true;
+    getSelection().clear();
+    renderServices();
+    list.querySelector('input')?.focus();
+  });
+  document.addEventListener('stoski:config', event => loadCatalog(event.detail));
+  loadCatalog(window.STOSKI_CONFIG);
+  return {
+    selected,
+    validate() {
+      if (!eventSelect.value) return false;
+      if (selected().length) return true;
+      error.textContent = 'Selecione pelo menos um serviço para solicitar o orçamento.';
+      error.hidden = false;
+      return false;
+    },
+    focusInvalid() {
+      if (!eventSelect.value) eventSelect.focus();
+      else list.querySelector('input[value="sim"]')?.focus();
+    }
+  };
+}
+const quotePackage = initQuotePackage();
 
 /* Service cards link to the quote form, including CMS-rendered cards. */
 const serviceAliases = new Map([
