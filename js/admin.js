@@ -524,6 +524,7 @@
         return '<article class="repeat-card">' + controls +
           '<span class="card-index">' + String(index + 1).padStart(2, '0') + '</span>' +
           objectInput(path, index, 'title', 'Nome do serviço', item.title) +
+          objectInput(path, index, 'category', 'Categoria (ex.: Casamentos, 15 anos ou Outros serviços)', item.category || 'Outros serviços') +
           objectTextarea(path, index, 'description', 'Descrição', item.description, 3) +
         '</article>';
       }
@@ -736,7 +737,7 @@
       setPath(config, path, list);
     }
 
-    if (path === 'services.items') list.push({ title: '', description: '' });
+    if (path === 'services.items') list.push({ title: '', description: '', category: 'Outros serviços' });
     else if (path === 'portfolio.items') list.push({
       id: String(Date.now()), category: '', title: '', subtitle: '', image: '', video: '', story: ''
     });
@@ -785,7 +786,7 @@
     const services = getPath(config, 'services.items') || [];
     qa('[data-object-path="services.items"]').forEach(field => {
       const item = services[Number(field.dataset.index)];
-      if (item && ['title', 'description'].includes(field.dataset.key)) item[field.dataset.key] = field.value;
+      if (item && ['title', 'description', 'category'].includes(field.dataset.key)) item[field.dataset.key] = field.value;
     });
     const incomplete = services.findIndex(item => {
       const title = String(item.title || '').trim();
