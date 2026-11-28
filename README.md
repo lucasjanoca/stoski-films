@@ -14,7 +14,7 @@ Site oficial de Henrique Stoski (Stoski Films), desenvolvido pela InfoTech.io.
 - Fluxo recomendado de vídeo: YouTube como **Não listado**, incorporado no player do próprio site.
 - Suporte adicional a Vimeo e arquivos MP4/WebM curtos.
 - Player carrega o vídeo apenas após o clique, reduzindo peso inicial e consumo de dados.
-- Formulário de orçamento que organiza a solicitação e abre o WhatsApp profissional.
+- Configurador de orçamento por evento, com seleção de vários serviços e resumo do pacote. Solicita nome e detalhes do evento, sem pedir o telefone do cliente, e abre o WhatsApp profissional com a mensagem pronta.
 - SEO técnico com metadados sociais, dados estruturados, canonical, sitemap, robots e manifest.
 - Acessibilidade com skip link, foco visível, navegação por teclado, dialogs e retorno de foco.
 - CSP aplicada também por meta tag para GitHub Pages; arquivo `_headers` mantido para hosts que suportam headers personalizados.
