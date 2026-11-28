@@ -199,9 +199,9 @@
     list.innerHTML = [...groups].map(([category, entries]) => {
       const rows = entries.map((item, index) => {
         const title = String(item.title).trim();
-        const href = 'contato.html?servico=' + encodeURIComponent(title) + '#orcamento';
+        const href = 'contato.html?servico=' + encodeURIComponent(title) + '&evento=' + encodeURIComponent(category) + '#orcamento';
         return '<a class="service-row reveal visible service-link" href="' + escapeHtml(href) +
-          '" aria-label="' + escapeHtml('Solicitar orçamento: ' + title) + '"><span>' +
+          '" aria-label="' + escapeHtml('Adicionar ao pacote: ' + title) + '"><span>' +
           String(index + 1).padStart(2, '0') + '</span><h3>' + escapeHtml(title) +
           '</h3><p>' + escapeHtml(item.description) + '</p></a>';
       }).join('');
