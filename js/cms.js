@@ -188,13 +188,27 @@
     text('.services-note', services.note);
     const list = q('.services-list');
     if (!list || !Array.isArray(services.items)) return;
-    list.innerHTML = services.items.filter(validService).map((item, index) => {
-      const title = String(item.title).trim();
-      const href = 'contato.html?servico=' + encodeURIComponent(title) + '#orcamento';
-      return '<a class="service-row reveal visible service-link" href="' + escapeHtml(href) +
-        '" aria-label="' + escapeHtml('Solicitar orçamento: ' + title) + '"><span>' +
-        String(index + 1).padStart(2, '0') + '</span><h3>' + escapeHtml(title) +
-        '</h3><p>' + escapeHtml(item.description) + '</p></a>';
+    const items = services.items.filter(validService);
+    const groups = new Map();
+    for (const item of items) {
+      const category = String(item.category || 'Outros serviços').trim() || 'Outros serviços';
+      if (!groups.has(category)) groups.set(category, []);
+      groups.get(category).push(item);
+    }
+    const opened = new Set(qa('.service-category[open]', list).map(el => el.dataset.category));
+    list.innerHTML = [...groups].map(([category, entries]) => {
+      const rows = entries.map((item, index) => {
+        const title = String(item.title).trim();
+        const href = 'contato.html?servico=' + encodeURIComponent(title) + '#orcamento';
+        return '<a class="service-row reveal visible service-link" href="' + escapeHtml(href) +
+          '" aria-label="' + escapeHtml('Solicitar orçamento: ' + title) + '"><span>' +
+          String(index + 1).padStart(2, '0') + '</span><h3>' + escapeHtml(title) +
+          '</h3><p>' + escapeHtml(item.description) + '</p></a>';
+      }).join('');
+      return '<details class="service-category" data-category="' + escapeHtml(category) + '"' +
+        (opened.has(category) ? ' open' : '') + '><summary><strong>' + escapeHtml(category) +
+        '</strong><small>' + entries.length + (entries.length === 1 ? ' serviço' : ' serviços') +
+        '</small></summary><div class="service-category-items">' + rows + '</div></details>';
     }).join('');
   }
 
@@ -300,9 +314,35 @@
         ['Eventos & celebrações', 'Filmagem de evento'],
         ['Reels & vídeos comerciais', 'Reels / vídeo comercial']
       ]);
-      const titles = Array.isArray(services.items) ? services.items.filter(validService).map(item => String(item.title).trim()) : [];
-      const options = [...new Set([...titles.map(title => aliases.get(title) || title), ...configured.map(item => String(item || '').trim())].filter(Boolean))];
-      select.replaceChildren(new Option('Selecione', ''), ...options.map(value => new Option(value, value)));
+      const items = Array.isArray(services.items) ? services.items.filter(validService) : [];
+      const groups = new Map();
+      const options = [];
+      for (const item of items) {
+        const title = String(item.title).trim();
+        const category = String(item.category || 'Outros serviços').trim() || 'Outros serviços';
+        const value = aliases.get(title) || title;
+        if (options.includes(value)) continue;
+        if (!groups.has(category)) {
+          const group = document.createElement('optgroup');
+          group.label = category;
+          groups.set(category, group);
+        }
+        groups.get(category).append(new Option(value, value));
+        options.push(value);
+      }
+      for (const item of configured) {
+        const value = String(item || '').trim();
+        if (!value || options.includes(value)) continue;
+        const category = 'Outros serviços';
+        if (!groups.has(category)) {
+          const group = document.createElement('optgroup');
+          group.label = category;
+          groups.set(category, group);
+        }
+        groups.get(category).append(new Option(value, value));
+        options.push(value);
+      }
+      select.replaceChildren(new Option('Selecione', ''), ...groups.values());
       if (options.includes(previous)) select.value = previous;
     }
   }
