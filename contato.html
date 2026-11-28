@@ -55,7 +55,7 @@
     "knowsAbout": ["Videografia de casamento", "Filmagem de eventos", "Edição e pós-produção de vídeo", "Vídeos comerciais", "Produção audiovisual"]
   }
   </script>
-  <link rel="stylesheet" href="css/pages.css?v=20261125-contact-icons">
+  <link rel="stylesheet" href="css/pages.css?v=20261127-categorias">
 </head>
 <body data-page="contact">
   <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
@@ -91,7 +91,7 @@
           <div class="field"><label for="time">Horário aproximado</label><input id="time" name="time" type="time"><small class="error"></small></div>
         </div>
         <div class="field"><label for="city">Cidade / local</label><input id="city" name="city" required placeholder="Ex.: Cerquilho - SP"><small class="error"></small></div>
-        <div class="field"><label for="service">O que você procura?</label><select id="service" name="service" required><option value="">Selecione</option><option>Filme de casamento</option><option>Filmagem de evento</option><option>Reels / vídeo comercial</option><option>Edição &amp; pós-produção</option><option>Produção audiovisual</option><option>Outro projeto em vídeo</option></select><small class="error"></small></div>
+        <div class="field"><label for="service">O que você procura?</label><select id="service" name="service" required><option value="">Selecione</option><optgroup label="Casamentos"><option>Filme de casamento</option><option>Cobertura Completa — Casamento</option><option>Pré-Wedding</option><option>Making Of — Casamento</option><option>Reels &amp; Conteúdo Social — Casamento</option><option>Filmagem com Drone — Casamento</option><option>Highlight / Trailer — Casamento</option></optgroup><optgroup label="15 anos"><option>Filme de 15 Anos</option><option>Cobertura Completa — 15 Anos</option><option>Ensaio Pré-15 Anos</option><option>Making Of da Debutante</option><option>Festa &amp; Momentos Especiais — 15 Anos</option><option>Reels &amp; Conteúdo para Redes Sociais — 15 Anos</option><option>Highlight / Trailer dos 15 Anos</option></optgroup><optgroup label="Outros serviços"><option>Filmagem de evento</option><option>Reels / vídeo comercial</option><option>Edição &amp; pós-produção</option><option>Produção audiovisual</option><option>Outro projeto em vídeo</option></optgroup></select><small class="error"></small></div>
         <div class="field"><label for="message">Conte um pouco sobre o projeto</label><textarea id="message" name="message" rows="5" placeholder="Tipo de evento, quantidade de pessoas, endereço, referências ou qualquer detalhe importante..."></textarea></div>
         <button class="btn btn-primary submit-btn" type="submit">Enviar pelo WhatsApp <span>↗</span></button>
         <p class="form-help" id="form-help">Ao enviar, o site organiza suas informações e abre diretamente o WhatsApp profissional do Henrique.</p>
@@ -118,7 +118,7 @@
   </a>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/cms.js?v=20261125-service-sync" defer></script>
+  <script src="js/cms.js?v=20261127-categorias" defer></script>
   <script src="js/main.js?v=20261125-servicos" defer></script>
 </body>
 </html>
