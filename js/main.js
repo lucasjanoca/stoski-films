@@ -77,7 +77,6 @@ const menuBackdrop = qs('.menu-backdrop');
 const form = qs('#budget-form');
 const status = qs('#form-status');
 const dateInput = qs('#date');
-const phoneInput = qs('#whatsapp');
 const storyModal = qs('#story-modal');
 const videoModal = qs('#video-modal');
 const portfolioVideo = qs('#portfolio-video');
@@ -494,15 +493,6 @@ videoModal?.addEventListener('click', event => {
   if (!inside) videoModal.close();
 });
 
-function formatBrazilianPhone(value) {
-  const digits=value.replace(/\D/g,'').slice(0,11);
-  if (digits.length<=2) return digits;
-  if (digits.length<=6) return `(${digits.slice(0,2)}) ${digits.slice(2)}`;
-  if (digits.length<=10) return `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
-}
-phoneInput?.addEventListener('input', event => { event.target.value=formatBrazilianPhone(event.target.value); });
-
 function validateField(field) {
   const wrap=field.closest('.field');
   const error=wrap?.querySelector('.error');
@@ -510,9 +500,12 @@ function validateField(field) {
   const value=field.value.trim();
   let message='';
   if (field.required && !value) message='Preencha este campo.';
-  if (field.id==='whatsapp' && value && value.replace(/\D/g,'').length<10) message='Informe um WhatsApp válido.';
+  if (!message && value && field.id==='date' && field.min && value < field.min) message='Escolha a data de hoje ou uma data futura.';
+  if (!message && field.validity?.badInput) message='Informe um valor válido.';
   wrap.classList.toggle('invalid',Boolean(message));
   field.setAttribute('aria-invalid',String(Boolean(message)));
+  if (!error.id && field.id) error.id=field.id+'-error';
+  if (error.id) field.setAttribute('aria-describedby',error.id);
   error.textContent=message;
   return !message;
 }
@@ -534,11 +527,11 @@ function buildWhatsAppMessage(data) {
   const lines=[
     WHATSAPP_GREETING,
     '',
-    `*Nome:* ${data.get('name')}`,
-    `*Meu WhatsApp:* ${data.get('whatsapp')}`
+    `*Nome:* ${String(data.get('name')||'').trim()}`
   ];
   if (data.get('eventType')) {
-    lines.push(`*Tipo de evento:* ${data.get('eventType')}`, '', '*Serviços desejados:*');
+    const eventLabel = ({'Casamentos':'Casamento','15 anos':'15 anos','Outros serviços':'Outros eventos e projetos'})[data.get('eventType')] || data.get('eventType');
+    lines.push(`*Tipo de evento:* ${eventLabel}`, '', '*Serviços desejados:*');
     for (const service of data.getAll('selectedService')) lines.push('• ' + service);
   } else {
     lines.push(`*Serviço:* ${data.get('service')}`);
@@ -547,7 +540,7 @@ function buildWhatsAppMessage(data) {
   const time=String(data.get('time')||'').trim();
   const city=String(data.get('city')||'').trim();
   const details=String(data.get('message')||'').trim();
-  if (date) lines.push(`*Data desejada:* ${formatDateBR(date)}`);
+  lines.push('', `*Data do evento:* ${date ? formatDateBR(date) : 'A definir'}`);
   if (time) lines.push(`*Horário aproximado:* ${time}`);
   if (city) lines.push(`*Cidade / local:* ${city}`);
   if (details) lines.push(`*Detalhes:* ${details}`);
@@ -557,11 +550,11 @@ function buildWhatsAppMessage(data) {
 
 form?.addEventListener('submit', event => {
   event.preventDefault();
-  const required=qsa('[required]',form);
-  const valid=required.map(validateField).every(Boolean);
+  const fields=qsa('.field input, .field select, .field textarea',form);
+  const valid=fields.map(validateField).every(Boolean);
   const packageValid=quotePackage ? quotePackage.validate() : true;
   if (!valid || !packageValid) {
-    if (status) status.textContent='Revise os campos destacados antes de continuar.';
+    if (status) status.textContent='Revise os campos destacados e selecione pelo menos um serviço.';
     if (!packageValid && quotePackage) quotePackage.focusInvalid();
     else qs('.field.invalid input, .field.invalid select, .field.invalid textarea',form)?.focus();
     return;
@@ -634,6 +627,7 @@ function initQuotePackage() {
   const summaryEvent = qs('#quote-summary-event');
   const summaryList = qs('#quote-summary-list');
   const empty = qs('#quote-summary-empty');
+  const overlapNote = qs('#quote-overlap-note');
   const params = new URLSearchParams(window.location.search);
   const requestTitle = params.get('servico')?.trim() || '';
   const requestCategory = params.get('evento')?.trim() || '';
@@ -669,6 +663,7 @@ function initQuotePackage() {
     const length = chosen.length;
     count.textContent = length + (length === 1 ? ' serviço selecionado' : ' serviços selecionados');
     clear.disabled = length === 0;
+    if (overlapNote) overlapNote.hidden = !chosen.some(title => /cobertura completa/i.test(title));
     summaryEvent.textContent = eventSelect.value ? prettyCategory(eventSelect.value) : 'Escolha o tipo de evento';
     summaryList.replaceChildren(...chosen.map(title => {
       const li = document.createElement('li');
@@ -680,6 +675,7 @@ function initQuotePackage() {
       remove.textContent = 'Remover';
       remove.setAttribute('aria-label', 'Remover ' + title);
       remove.addEventListener('click', () => {
+        interacted = true;
         getSelection().delete(title);
         const row = Array.from(list.querySelectorAll('.quote-service-choice')).find(el => el.dataset.title === title);
         const no = row?.querySelector('input[value="nao"]');
@@ -766,7 +762,8 @@ function initQuotePackage() {
       for (const title of chosen) if (!catalog.some(item => item.category === category && item.title === title)) chosen.delete(title);
     }
     if (!interacted && !requestedApplied) {
-      const item = catalog.find(item => item.title === requestTitle || item.title === normalizeTitle(requestTitle));
+      const matches = item => item.title === requestTitle || item.title === normalizeTitle(requestTitle);
+      const item = catalog.find(item => item.category === requestCategory && matches(item)) || (!requestCategory ? catalog.find(matches) : undefined);
       if (item) {
         eventSelect.value = item.category;
         getSelection(item.category).add(item.title);
@@ -815,8 +812,8 @@ const serviceAliases = new Map([
   ['Edição & pós-produção', 'Edição & pós-produção'],
   ['Produção audiovisual', 'Produção audiovisual']
 ]);
-function serviceQuoteUrl(title) {
-  return 'contato.html?servico=' + encodeURIComponent(title) + '#orcamento';
+function serviceQuoteUrl(title, category) {
+  return 'contato.html?servico=' + encodeURIComponent(title) + (category ? '&evento=' + encodeURIComponent(category) : '') + '#orcamento';
 }
 function enableServiceLinks() {
   qsa('.services-list .service-row').forEach(row => {
@@ -828,9 +825,9 @@ function enableServiceLinks() {
       link.append(...row.childNodes);
       row.replaceWith(link);
     }
-    link.href = serviceQuoteUrl(title);
+    link.href = serviceQuoteUrl(title, row.closest('.service-category')?.dataset.category);
     link.classList.add('service-link');
-    link.setAttribute('aria-label', 'Solicitar orçamento: ' + title);
+    link.setAttribute('aria-label', 'Adicionar ao pacote: ' + title);
   });
 }
 const quoteService = qs('#service');
