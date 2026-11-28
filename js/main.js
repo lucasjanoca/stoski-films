@@ -825,7 +825,7 @@ function enableServiceLinks() {
       link.append(...row.childNodes);
       row.replaceWith(link);
     }
-    link.href = serviceQuoteUrl(title, row.closest('.service-category')?.dataset.category);
+    link.href = serviceQuoteUrl(title, row.dataset.category || row.closest('.service-category')?.dataset.category);
     link.classList.add('service-link');
     link.setAttribute('aria-label', 'Adicionar ao pacote: ' + title);
   });
