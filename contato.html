@@ -55,7 +55,7 @@
     "knowsAbout": ["Videografia de casamento", "Filmagem de eventos", "Edição e pós-produção de vídeo", "Vídeos comerciais", "Produção audiovisual"]
   }
   </script>
-  <link rel="stylesheet" href="css/pages.css?v=20261127-categorias">
+  <link rel="stylesheet" href="css/pages.css?v=20261127-pacotes">
 </head>
 <body data-page="contact">
   <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
@@ -83,18 +83,34 @@
         <p>Conte os detalhes do que você imagina. O envio não reserva a data automaticamente; a disponibilidade é confirmada depois do contato.</p>
       </div>
 
-      <form class="budget-form reveal" id="budget-form" novalidate>
-        <div class="field"><label for="name">Seu nome</label><input id="name" name="name" autocomplete="name" required placeholder="Como podemos te chamar?"><small class="error"></small></div>
-        <div class="field"><label for="whatsapp">Seu WhatsApp</label><input id="whatsapp" name="whatsapp" inputmode="tel" autocomplete="tel" required placeholder="(15) 99999-9999"><small class="error"></small></div>
-        <div class="form-row">
-          <div class="field"><label for="date">Data desejada</label><input id="date" name="date" type="date"><small class="error"></small></div>
-          <div class="field"><label for="time">Horário aproximado</label><input id="time" name="time" type="time"><small class="error"></small></div>
-        </div>
-        <div class="field"><label for="city">Cidade / local</label><input id="city" name="city" required placeholder="Ex.: Cerquilho - SP"><small class="error"></small></div>
-        <div class="field"><label for="service">O que você procura?</label><select id="service" name="service" required><option value="">Selecione</option><optgroup label="Casamentos"><option>Filme de casamento</option><option>Cobertura Completa — Casamento</option><option>Pré-Wedding</option><option>Making Of — Casamento</option><option>Reels &amp; Conteúdo Social — Casamento</option><option>Filmagem com Drone — Casamento</option><option>Highlight / Trailer — Casamento</option></optgroup><optgroup label="15 anos"><option>Filme de 15 Anos</option><option>Cobertura Completa — 15 Anos</option><option>Ensaio Pré-15 Anos</option><option>Making Of da Debutante</option><option>Festa &amp; Momentos Especiais — 15 Anos</option><option>Reels &amp; Conteúdo para Redes Sociais — 15 Anos</option><option>Highlight / Trailer dos 15 Anos</option></optgroup><optgroup label="Outros serviços"><option>Filmagem de evento</option><option>Reels / vídeo comercial</option><option>Edição &amp; pós-produção</option><option>Produção audiovisual</option><option>Outro projeto em vídeo</option></optgroup></select><small class="error"></small></div>
-        <div class="field"><label for="message">Conte um pouco sobre o projeto</label><textarea id="message" name="message" rows="5" placeholder="Tipo de evento, quantidade de pessoas, endereço, referências ou qualquer detalhe importante..."></textarea></div>
-        <button class="btn btn-primary submit-btn" type="submit">Enviar pelo WhatsApp <span>↗</span></button>
-        <p class="form-help" id="form-help">Ao enviar, o site organiza suas informações e abre diretamente o WhatsApp profissional do Henrique.</p>
+      <form class="budget-form quote-builder reveal" id="budget-form" novalidate>
+        <section class="quote-step" aria-labelledby="quote-event-title">
+          <div class="quote-step-head"><span>01</span><div><h3 id="quote-event-title">Qual é o seu evento?</h3><p>Escolha uma categoria para ver os serviços disponíveis.</p></div></div>
+          <div class="field"><label for="event-type">Tipo de evento</label><select id="event-type" name="eventType" required><option value="">Selecione seu evento</option><option value="Casamentos">Casamento</option><option value="15 anos">15 anos</option><option value="Outros serviços">Outros eventos e projetos</option></select><small class="error" id="event-type-error" aria-live="polite"></small></div>
+        </section>
+        <section class="quote-step" id="quote-services-step" aria-labelledby="quote-services-title" hidden>
+          <div class="quote-step-head"><span>02</span><div><h3 id="quote-services-title">Personalize seu pacote</h3><p>Marque Sim para incluir cada serviço ou Não para deixar de fora. Você pode escolher vários.</p></div></div>
+          <div id="quote-services" class="quote-services"></div>
+          <p class="quote-selection-error" id="quote-selection-error" role="alert" hidden></p>
+          <div class="quote-count" role="status" aria-live="polite"><span id="quote-service-count">0 serviços selecionados</span><button type="button" id="quote-clear" class="quote-clear" disabled>Limpar seleção</button></div>
+        </section>
+        <section class="quote-step" aria-labelledby="quote-details-title">
+          <div class="quote-step-head"><span>03</span><div><h3 id="quote-details-title">Conte sobre o evento</h3><p>Informe seus dados para o Henrique preparar uma proposta personalizada.</p></div></div>
+          <div class="form-row"><div class="field"><label for="name">Seu nome</label><input id="name" name="name" autocomplete="name" required placeholder="Como podemos te chamar?"><small class="error"></small></div><div class="field"><label for="whatsapp">Seu WhatsApp</label><input id="whatsapp" name="whatsapp" inputmode="tel" autocomplete="tel" required placeholder="(15) 99999-9999"><small class="error"></small></div></div>
+          <div class="form-row"><div class="field"><label for="date">Data do evento (se definida)</label><input id="date" name="date" type="date"><small class="error"></small></div><div class="field"><label for="time">Horário aproximado</label><input id="time" name="time" type="time"><small class="error"></small></div></div>
+          <div class="field"><label for="city">Cidade / local</label><input id="city" name="city" required placeholder="Ex.: Cerquilho - SP"><small class="error"></small></div>
+          <div class="field"><label for="message">Detalhes adicionais (opcional)</label><textarea id="message" name="message" rows="4" placeholder="Endereço, quantidade de convidados, referências, data do ensaio ou outros detalhes importantes..."></textarea></div>
+        </section>
+        <section class="quote-step quote-summary" aria-labelledby="quote-summary-title">
+          <div class="quote-step-head"><span>04</span><div><h3 id="quote-summary-title">Seu pacote de filmagem</h3><p>Confira sua seleção antes de solicitar o orçamento.</p></div></div>
+          <p id="quote-summary-event" class="quote-summary-event">Escolha o tipo de evento</p>
+          <ul id="quote-summary-list" class="quote-summary-list"></ul>
+          <p id="quote-summary-empty" class="quote-summary-empty">Os serviços selecionados aparecerão aqui.</p>
+          <p class="quote-summary-note">O valor e a disponibilidade da data serão confirmados diretamente pelo Henrique. Esta solicitação não reserva a data.</p>
+        </section>
+        <noscript><p>Ative o JavaScript para montar seu pacote ou fale diretamente pelo WhatsApp abaixo.</p></noscript>
+        <button class="btn btn-primary submit-btn" type="submit">Solicitar orçamento pelo WhatsApp <span>↗</span></button>
+        <p class="form-help" id="form-help">Ao enviar, o site abre o WhatsApp profissional do Henrique com todos os serviços selecionados e os detalhes do evento.</p>
         <div class="budget-contacts" aria-label="Outras formas de contato">
           <a class="instagram-card" href="https://www.instagram.com/stoski_films/" target="_blank" rel="noopener noreferrer">
             <span class="contact-label"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01" stroke-width="2.5"/></svg><span>Instagram</span></span><strong>@stoski_films</strong>
@@ -119,6 +135,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/cms.js?v=20261127-categorias" defer></script>
-  <script src="js/main.js?v=20261125-servicos" defer></script>
+  <script type="application/json" id="quote-catalog">[{"category":"Casamentos","title":"Filme de casamento","description":"Um filme cinematográfico com os momentos mais marcantes e emocionantes do casamento."},{"category":"Casamentos","title":"Cobertura Completa — Casamento","description":"Registro do making of, cerimônia, recepção e festa, contando toda a história do grande dia."},{"category":"Casamentos","title":"Pré-Wedding","description":"Ensaio cinematográfico do casal antes do casamento, com direção e produção de vídeo."},{"category":"Casamentos","title":"Making Of — Casamento","description":"Registro dos preparativos dos noivos, incluindo detalhes, família, emoções e momentos espontâneos."},{"category":"Casamentos","title":"Reels & Conteúdo Social — Casamento","description":"Vídeos verticais e dinâmicos para Instagram, Stories, Reels e TikTok."},{"category":"Casamentos","title":"Filmagem com Drone — Casamento","description":"Imagens aéreas para valorizar o local, decoração e momentos especiais do casamento."},{"category":"Casamentos","title":"Highlight / Trailer — Casamento","description":"Um vídeo curto e emocionante com os melhores momentos do casamento, ideal para compartilhar nas redes sociais."},{"category":"15 anos","title":"Filme de 15 Anos","description":"Um filme cinematográfico contando a história e os momentos mais emocionantes da debutante."},{"category":"15 anos","title":"Cobertura Completa — 15 Anos","description":"Registro dos preparativos, chegada dos convidados, cerimônia, festa e todos os momentos especiais."},{"category":"15 anos","title":"Ensaio Pré-15 Anos","description":"Ensaio cinematográfico da debutante em uma locação escolhida, com produção e direção de vídeo."},{"category":"15 anos","title":"Making Of da Debutante","description":"Registro dos preparativos, cabelo, maquiagem, vestido, família e a expectativa antes da festa."},{"category":"15 anos","title":"Festa & Momentos Especiais — 15 Anos","description":"Entrada, valsa, homenagens, parabéns, dança, família, amigos e momentos espontâneos."},{"category":"15 anos","title":"Reels & Conteúdo para Redes Sociais — 15 Anos","description":"Vídeos verticais modernos para Instagram, Stories e TikTok, destacando os melhores momentos."},{"category":"15 anos","title":"Highlight / Trailer dos 15 Anos","description":"Um vídeo curto, emocionante e cinematográfico com os melhores momentos da festa, perfeito para compartilhar nas redes sociais."},{"category":"Outros serviços","title":"Eventos & celebrações","description":"Captação dinâmica para transformar encontros, festas e experiências em narrativa."},{"category":"Outros serviços","title":"Reels & vídeos comerciais","description":"Conteúdo vertical e promocional com ritmo, identidade e impacto para marcas e redes sociais."},{"category":"Outros serviços","title":"Edição & pós-produção","description":"Montagem, cor, áudio, ritmo e acabamento para transformar suas gravações em um filme completo."},{"category":"Outros serviços","title":"Produção audiovisual","description":"Do planejamento à entrega: criação, captação e edição de vídeos pensados para contar histórias e fortalecer marcas."}]</script>
+  <script src="js/main.js?v=20261127-pacotes" defer></script>
 </body>
 </html>
